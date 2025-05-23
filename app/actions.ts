@@ -4,10 +4,14 @@ import { encodedRedirect } from "@/utils/utils";
 import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { upsertUserProfile, UserType } from "@/utils/supabase/user-profile";
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
+  const userType = formData.get("userType")?.toString() as UserType;
+  const fullName = formData.get("fullName")?.toString();
+  
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
 
@@ -19,11 +23,23 @@ export const signUpAction = async (formData: FormData) => {
     );
   }
 
-  const { error } = await supabase.auth.signUp({
+  if (!userType || !['student', 'teacher'].includes(userType)) {
+    return encodedRedirect(
+      "error",
+      "/sign-up",
+      "Please select if you are a student or teacher",
+    );
+  }
+
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       emailRedirectTo: `${origin}/auth/callback`,
+      data: {
+        user_type: userType,
+        full_name: fullName || '',
+      }
     },
   });
 
@@ -44,13 +60,31 @@ export const signInAction = async (formData: FormData) => {
   const password = formData.get("password") as string;
   const supabase = await createClient();
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
   if (error) {
     return encodedRedirect("error", "/sign-in", error.message);
+  }
+
+  // Check if user needs onboarding
+  if (data.user) {
+    try {
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('has_completed_onboarding')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profile && !profile.has_completed_onboarding) {
+        return redirect("/onboarding");
+      }
+    } catch (profileError) {
+      console.error('Error checking user profile:', profileError);
+      // If there's an error checking profile, continue to protected route
+    }
   }
 
   return redirect("/protected");

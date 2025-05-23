@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { EnvVarWarning } from "@/components/env-var-warning";
 import HeaderAuthClient from "@/components/header-auth-client";
 import Footer from "@/components/footer";
+import AuthWrapper from "@/components/auth-wrapper";
 import { hasEnvVars } from "@/utils/supabase/check-env-vars";
 
 // HeaderContent remains a client component using the useRole hook.
@@ -38,15 +39,17 @@ function HeaderContent() {
 export default function MainLayoutClientWrapper({ children }: { children: React.ReactNode }) {
   return (
     <RoleProvider>
-      <div className="min-h-screen flex flex-col items-center"> {/* Simplified outer structure */}
-        <HeaderContent />
-        <div className="flex-1 w-full flex flex-col items-center pt-16"> {/* Add pt-16 for fixed header */}
-          <div className="flex flex-col gap-20 max-w-5xl p-5 w-full"> {/* Removed pt-24 as pt-16 is on parent */}
-            {children}
+      <AuthWrapper>
+        <div className="min-h-screen flex flex-col items-center"> {/* Simplified outer structure */}
+          <HeaderContent />
+          <div className="flex-1 w-full flex flex-col items-center pt-16"> {/* Add pt-16 for fixed header */}
+            <div className="flex flex-col gap-20 max-w-5xl p-5 w-full"> {/* Removed pt-24 as pt-16 is on parent */}
+              {children}
+            </div>
           </div>
+          <Footer />
         </div>
-        <Footer />
-      </div>
+      </AuthWrapper>
     </RoleProvider>
   );
 } 
