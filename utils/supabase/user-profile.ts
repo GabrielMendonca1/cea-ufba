@@ -1,6 +1,6 @@
 import { createClient } from './client';
 
-export type UserType = 'student' | 'teacher';
+export type UserType = 'student' | 'professor';
 
 export interface UserProfile {
   id: string;
@@ -8,12 +8,10 @@ export interface UserProfile {
   full_name?: string;
   user_type: UserType;
   department?: string;
-  course?: string; // for students
-  research_area?: string; // for teachers
+  research_area?: string;
   bio?: string;
-  lattes_url?: string; // for teachers
-  student_id?: string; // for students
-  phone?: string;
+  lattes_url?: string;
+  student_id?: string;
   avatar_url?: string;
   is_profile_complete: boolean;
   has_completed_onboarding: boolean;
@@ -25,12 +23,10 @@ export interface CreateUserProfileData {
   user_type: UserType;
   full_name?: string;
   department?: string;
-  course?: string;
   research_area?: string;
   bio?: string;
   lattes_url?: string;
   student_id?: string;
-  phone?: string;
 }
 
 export interface UpdateUserProfileData extends Partial<CreateUserProfileData> {

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentUserProfile, completeOnboarding, UserProfile } from "@/utils/supabase/user-profile";
-import Onboarding from "@/components/onboarding";
+import ProfileOnboarding from "@/components/profile-onboarding";
 import { createClient } from "@/utils/supabase/client";
 
 export default function OnboardingPage() {
@@ -69,9 +69,10 @@ export default function OnboardingPage() {
   }
 
   return (
-    <Onboarding
+    <ProfileOnboarding
       userType={profile.user_type}
       userName={profile.full_name}
+      currentProfile={profile}
       onComplete={handleOnboardingComplete}
     />
   );

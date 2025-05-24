@@ -77,9 +77,15 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
    ```
    NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
    NEXT_PUBLIC_SUPABASE_ANON_KEY=[INSERT SUPABASE PROJECT API ANON KEY]
+   SUPABASE_SERVICE_ROLE_KEY=[INSERT SUPABASE SERVICE ROLE KEY]
+   SUPABASE_WEBHOOK_SECRET=[GENERATE A RANDOM SECRET]
    ```
 
    Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` can be found in [your Supabase project's API settings](https://app.supabase.com/project/_/settings/api)
+   
+   The `SUPABASE_SERVICE_ROLE_KEY` is also available in the same API settings page.
+   
+   Generate a random string for `SUPABASE_WEBHOOK_SECRET` to secure your webhook endpoint.
 
 5. You can now run the Next.js local development server:
 
@@ -90,6 +96,42 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
    The starter kit should now be running on [localhost:3000](http://localhost:3000/).
 
 6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+
+## Webhook Configuration
+
+This application includes webhook support for Supabase Auth events (user creation, email confirmation, etc.).
+
+### Setting up Webhooks in Supabase:
+
+1. Go to your [Supabase Dashboard](https://app.supabase.com)
+2. Navigate to Database → Webhooks
+3. Create a new webhook with the following settings:
+   - **Table**: `auth.users`
+   - **Events**: `INSERT`, `UPDATE`, `DELETE`
+   - **Type**: HTTP Request
+   - **HTTP Method**: POST
+   - **URL**: `https://your-domain.com/api/webhooks/auth`
+   - **HTTP Headers**: `Content-Type: application/json`
+   - **HTTP Headers**: `x-supabase-signature: [your-webhook-secret]`
+
+The webhook will automatically handle:
+- User profile creation when new users sign up
+- Profile updates when users confirm their email
+- Cleanup when users are deleted
+
+### Testing Webhooks Locally:
+
+For local development, you can use tools like [ngrok](https://ngrok.com/) to expose your local server:
+
+```bash
+# In one terminal, start your Next.js app
+npm run dev
+
+# In another terminal, expose it with ngrok
+npx ngrok http 3000
+```
+
+Then use the ngrok URL for your webhook configuration in Supabase.
 
 > Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
 

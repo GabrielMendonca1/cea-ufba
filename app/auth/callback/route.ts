@@ -19,48 +19,8 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${origin}/sign-in?error=${encodeURIComponent(error.message)}`);
     }
 
-    // If user just signed up, create/update their profile
-    if (data.user) {
-      try {
-        const userMetadata = data.user.user_metadata;
-        
-        // Check if profile exists
-        const { data: existingProfile } = await supabase
-          .from('user_profiles')
-          .select('id')
-          .eq('id', data.user.id)
-          .single();
-
-        if (!existingProfile) {
-          // Create new profile with metadata
-          await supabase
-            .from('user_profiles')
-            .insert({
-              id: data.user.id,
-              email: data.user.email!,
-              user_type: userMetadata.user_type || 'student',
-              full_name: userMetadata.full_name || '',
-              has_completed_onboarding: false,
-              is_profile_complete: false
-            });
-        } else {
-          // Update existing profile if metadata exists
-          if (userMetadata.user_type || userMetadata.full_name) {
-            await supabase
-              .from('user_profiles')
-              .update({
-                user_type: userMetadata.user_type || 'student',
-                full_name: userMetadata.full_name || '',
-                updated_at: new Date().toISOString()
-              })
-              .eq('id', data.user.id);
-          }
-        }
-      } catch (profileError) {
-        console.error('Error creating/updating profile:', profileError);
-        // Continue with redirect even if profile creation fails
-      }
-    }
+    // Profile creation is now handled automatically by the database trigger
+    // No need for manual profile creation here
   }
 
   if (redirectTo) {
