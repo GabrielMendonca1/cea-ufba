@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-export type UserRole = 'student' | 'teacher';
+export type UserRole = 'student' | 'teacher' | 'anon';
 
 interface RoleContextType {
   role: UserRole;
@@ -13,7 +13,7 @@ interface RoleContextType {
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
 
 export const RoleProvider = ({ children }: { children: ReactNode }) => {
-  const [role, setRole] = useState<UserRole>('student'); // Default role
+  const [role, setRole] = useState<UserRole>('anon'); 
 
   const toggleRole = () => {
     setRole((prevRole) => (prevRole === 'student' ? 'teacher' : 'student'));

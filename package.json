@@ -3,9 +3,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "test:webhook": "node scripts/test-webhook.js",
-    "monitor:logs": "node scripts/monitor-logs.js"
+    "start": "next start"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.10",

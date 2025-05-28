@@ -1,12 +1,31 @@
 "use server";
 
+/**
+ * Server Actions for Authentication
+ * 
+ * This file contains all server-side authentication actions for the application.
+ * These functions handle user registration, login, password reset, and logout.
+ * 
+ * Core functionality:
+ * - User registration with profile creation
+ * - User authentication (sign in/out)
+ * - Password reset and recovery
+ * - Input validation and error handling
+ * - Supabase integration for auth and database operations
+ * 
+ * All actions return encoded redirects for proper client-side handling.
+ */
+
 import { encodedRedirect } from "@/utils/utils";
 import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { upsertUserProfile, UserType } from "@/utils/supabase/user-profile";
 
-// Utility function for better error handling
+/**
+ * Error Message Utility
+ * Maps Supabase auth errors to user-friendly Portuguese messages
+ */
 function getErrorMessage(error: any): string {
   if (error?.message) {
     // Map common Supabase auth errors to user-friendly messages
@@ -30,13 +49,19 @@ function getErrorMessage(error: any): string {
   return 'Ocorreu um erro inesperado. Tente novamente.';
 }
 
-// Email validation function
+/**
+ * Email Validation Function
+ * Validates email format using regex pattern
+ */
 function isValidEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 }
 
-// Password validation function
+/**
+ * Password Validation Function
+ * Validates password strength and length requirements
+ */
 function validatePassword(password: string): { isValid: boolean; message?: string } {
   if (password.length < 6) {
     return { isValid: false, message: 'A senha deve ter pelo menos 6 caracteres.' };
@@ -47,6 +72,13 @@ function validatePassword(password: string): { isValid: boolean; message?: strin
   return { isValid: true };
 }
 
+/**
+ * Sign Up Action
+ * Handles user registration with validation and profile creation
+ * 
+ * @param formData - Form data containing email, password, full_name, and user_type
+ * @returns Encoded redirect with success or error message
+ */
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();

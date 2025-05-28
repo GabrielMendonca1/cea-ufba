@@ -17,6 +17,10 @@ import {
 } from "@/components/ui/sheet";
 import { CalendarDays, Clock, Users, GraduationCap, MapPin, BookOpen, Award, DollarSign, ChevronDown, User, Calendar } from "lucide-react";
 
+/**
+ * Research Opportunity Data Structure
+ * Represents a research opportunity with all its properties
+ */
 type ResearchOpportunity = {
   id: string;
   title: string;
@@ -35,22 +39,51 @@ type ResearchOpportunity = {
   created_at: string;
 };
 
+// Configuration for pagination
 const ITEMS_PER_PAGE = 10;
 
+/**
+ * Research Opportunities List Component
+ * 
+ * This is the main component that displays research opportunities in an infinite scroll format.
+ * 
+ * Core functionality:
+ * - Fetches research opportunities from Supabase database
+ * - Implements infinite scrolling using Intersection Observer API
+ * - Displays opportunities in card format with detailed view in a sheet
+ * - Handles loading states, error states, and empty states
+ * - Optimizes performance by loading data in pages
+ * 
+ * Features:
+ * - Responsive design (desktop and mobile)
+ * - Real-time data from database
+ * - Detailed view for each opportunity
+ * - Scholarship type categorization
+ * - Date and currency formatting for Brazilian users
+ */
 export default function ResearchOpportunitiesList() {
+  // State management for infinite scroll functionality
   const [items, setItems] = useState<ResearchOpportunity[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // State for detailed view functionality
   const [selectedResearch, setSelectedResearch] = useState<ResearchOpportunity | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  
+  // Ref for intersection observer (infinite scroll trigger)
   const loadingRef = useRef<HTMLDivElement>(null);
 
   const supabase = createClient();
 
-  // Função para carregar mais itens
+  /**
+   * Load More Items Function
+   * Fetches the next batch of research opportunities from the database
+   * Implements deduplication to prevent duplicate items
+   */
   const loadMoreItems = useCallback(async () => {
     if (loading || !hasMore) return;
 
@@ -60,11 +93,12 @@ export default function ResearchOpportunitiesList() {
       const startIndex = currentPage * ITEMS_PER_PAGE;
       const endIndex = startIndex + ITEMS_PER_PAGE - 1;
 
+      // Fetch data from Supabase with pagination
       const { data, error } = await supabase
         .from("research_opportunities")
         .select("*")
-        .eq("is_active", true)
-        .order("created_at", { ascending: false })
+        .eq("is_active", true) // Only show active opportunities
+        .order("created_at", { ascending: false }) // Most recent first
         .range(startIndex, endIndex);
 
       if (error) {
@@ -91,14 +125,17 @@ export default function ResearchOpportunitiesList() {
     }
   }, [currentPage, loading, hasMore, supabase]);
 
-  // Carregar itens iniciais
+  // Load initial items on component mount
   useEffect(() => {
     if (items.length === 0 && !loading && !error) {
       loadMoreItems();
     }
   }, [items.length, loading, error]);
 
-  // Intersection Observer para infinite scroll
+  /**
+   * Intersection Observer for Infinite Scroll
+   * Automatically loads more items when user scrolls near the bottom
+   */
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -108,8 +145,8 @@ export default function ResearchOpportunitiesList() {
         }
       },
       {
-        threshold: 0.1,
-        rootMargin: '100px'
+        threshold: 0.1, // Trigger when 10% of the element is visible
+        rootMargin: '100px' // Load 100px before reaching the element
       }
     );
 
@@ -124,11 +161,19 @@ export default function ResearchOpportunitiesList() {
     };
   }, [loadMoreItems, hasMore, loading]);
 
+  /**
+   * Handle Research Click
+   * Opens the detailed view sheet for a selected research opportunity
+   */
   const handleResearchClick = (research: ResearchOpportunity) => {
     setSelectedResearch(research);
     setIsSheetOpen(true);
   };
 
+  /**
+   * Get Scholarship Badge Variant
+   * Returns appropriate badge styling based on scholarship type
+   */
   const getScholarshipBadgeVariant = (type: string) => {
     if (type === 'PIBIC') return 'default';
     if (type === 'PIBITI') return 'secondary';
@@ -136,6 +181,10 @@ export default function ResearchOpportunitiesList() {
     return 'destructive';
   };
 
+  /**
+   * Format Date for Brazilian Users
+   * Converts ISO date to Brazilian date format (DD/MM/YYYY)
+   */
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("pt-BR", {
       day: "2-digit",
@@ -144,6 +193,10 @@ export default function ResearchOpportunitiesList() {
     });
   };
 
+  /**
+   * Format Currency for Brazilian Users
+   * Converts numeric value to Brazilian Real (BRL) format
+   */
   const formatCurrency = (value: string) => {
     const numValue = parseFloat(value);
     return new Intl.NumberFormat("pt-BR", {
@@ -152,6 +205,7 @@ export default function ResearchOpportunitiesList() {
     }).format(numValue);
   };
 
+  // Loading state - Shows skeleton cards while fetching initial data
   if (initialLoading) {
     return (
       <div className="w-full max-w-5xl mx-auto px-4 py-12">
