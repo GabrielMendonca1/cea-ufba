@@ -4,7 +4,7 @@ import { forgotPasswordAction } from "@/app/actions";
 import { FormMessage, Message } from "@/components/forms/form-message";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ValidatedInput } from "@/components/form-validation";
+import { ValidatedInput } from "@/components/forms/form-validation";
 import Link from "next/link";
 import { SmtpMessage } from "../smtp-message";
 import { Mail, ArrowLeft, Shield } from "lucide-react";

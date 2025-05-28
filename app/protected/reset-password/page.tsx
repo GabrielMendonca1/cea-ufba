@@ -4,7 +4,7 @@ import { resetPasswordAction } from "@/app/actions";
 import { FormMessage, Message } from "@/components/forms/form-message";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ValidatedInput } from "@/components/form-validation";
+import { ValidatedInput } from "@/components/forms/form-validation";
 import { useState } from "react";
 import { Lock, Shield, CheckCircle } from "lucide-react";
 import { useSearchParams } from "next/navigation";

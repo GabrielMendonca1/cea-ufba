@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentUserProfile, completeOnboarding, UserProfile } from "@/utils/supabase/user-profile";
-import ProfileOnboarding from "@/components/profile-onboarding";
+import ProfileOnboarding from "@/components/onboarding/profile-onboarding";
 import { createClient } from "@/utils/supabase/client";
 
 export default function OnboardingPage() {
