@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ThemeSwitcher } from './theme-switcher'; // Assuming ThemeSwitcher is in the same directory or adjust path
+import { ThemeSwitcher } from '@/components/layout/theme-switcher';
 
 export default function Footer() {
   return (

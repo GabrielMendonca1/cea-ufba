@@ -1,8 +1,8 @@
 "use client";
 
 import { forgotPasswordAction } from "@/app/actions";
-import { FormMessage, Message } from "@/components/form-message";
-import { SubmitButton } from "@/components/submit-button";
+import { FormMessage, Message } from "@/components/forms/form-message";
+import { SubmitButton } from "@/components/forms/submit-button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ValidatedInput } from "@/components/form-validation";
 import Link from "next/link";

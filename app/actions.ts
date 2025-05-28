@@ -12,6 +12,7 @@
  * - Password reset and recovery
  * - Input validation and error handling
  * - Supabase integration for auth and database operations
+ * - Professor validation with UFBA systems
  * 
  * All actions return encoded redirects for proper client-side handling.
  */
@@ -21,6 +22,11 @@ import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { upsertUserProfile, UserType } from "@/utils/supabase/user-profile";
+import { 
+  validateProfessorWithUFBA, 
+  logProfessorRegistration,
+  isValidUFBAEmail 
+} from "@/utils/supabase/professor-validation";
 
 /**
  * Error Message Utility
@@ -33,7 +39,7 @@ function getErrorMessage(error: any): string {
       case 'Invalid login credentials':
         return 'Email ou senha incorretos. Verifique suas credenciais.';
       case 'Email not confirmed':
-        return 'Por favor, confirme seu email antes de fazer login.';
+        return 'Sua conta ainda não foi confirmada. Verifique sua caixa de entrada de email (incluindo spam) e clique no link de confirmação que enviamos. Se não encontrou o email, tente se cadastrar novamente.';
       case 'User already registered':
         return 'Este email já está cadastrado. Tente fazer login ou recuperar sua senha.';
       case 'Password should be at least 6 characters':
@@ -126,77 +132,109 @@ export const signUpAction = async (formData: FormData) => {
 
   const supabase = await createClient();
 
-  try {
-    console.log('🔄 Attempting Supabase signup with metadata:', {
-      email: email ? `${email.substring(0, 3)}***@${email.split('@')[1]}` : 'missing',
-      metadata: {
+  console.log('🔄 Attempting Supabase signup with metadata:', {
+    email: email ? `${email.substring(0, 3)}***@${email.split('@')[1]}` : 'missing',
+    metadata: {
+      full_name: fullName,
+      user_type: userType,
+    }
+  });
+
+  // First, sign up the user with metadata
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
         full_name: fullName,
         user_type: userType,
-      }
-    });
-
-    // First, sign up the user with metadata
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-          user_type: userType,
-        },
-        emailRedirectTo: `${origin}/auth/callback`,
       },
-    });
+      emailRedirectTo: `${origin}/auth/callback`,
+    },
+  });
 
-    if (error) {
-      console.error('❌ Auth signup error details:', {
-        message: error.message,
-        status: error.status,
-        code: error.code,
-        fullError: error
-      });
-      return encodedRedirect("error", "/sign-up", getErrorMessage(error));
-    }
-
-    if (!data.user) {
-      console.error('❌ No user data returned from signup');
-      return encodedRedirect(
-        "error",
-        "/sign-up",
-        "Erro ao criar usuário. Tente novamente.",
-      );
-    }
-
-    console.log('✅ User created successfully:', {
-      userId: data.user.id,
-      email: data.user.email,
-      emailConfirmed: data.user.email_confirmed_at,
-      metadata: data.user.user_metadata
-    });
-
-    // Profile creation is now handled automatically by the database trigger
-    console.log('✅ Signup completed - trigger should handle profile creation');
-    console.log('=== SIGNUP ACTION END ===');
-    
-    return encodedRedirect(
-      "success",
-      "/sign-up",
-      "Cadastro realizado com sucesso! Verifique seu email para confirmar a conta.",
-    );
-
-  } catch (error) {
-    console.error('❌ Unexpected error in signUpAction:', {
-      name: (error as Error)?.name,
-      message: (error as Error)?.message,
-      stack: (error as Error)?.stack,
+  if (error) {
+    console.error('❌ Auth signup error details:', {
+      message: error.message,
+      status: error.status,
+      code: error.code,
       fullError: error
     });
+    return encodedRedirect("error", "/sign-up", getErrorMessage(error));
+  }
+
+  if (!data.user) {
+    console.error('❌ No user data returned from signup');
     return encodedRedirect(
       "error",
       "/sign-up",
-      "Erro interno do servidor. Tente novamente mais tarde.",
+      "Erro ao criar usuário. Tente novamente.",
     );
   }
+
+  console.log('✅ User created successfully:', {
+    userId: data.user.id,
+    email: data.user.email,
+    emailConfirmed: data.user.email_confirmed_at,
+    metadata: data.user.user_metadata
+  });
+
+  // Special validation for professors
+  if (userType === 'professor') {
+    console.log('🔍 Initiating professor validation process...');
+    
+    try {
+      const professorValidationData = {
+        email: email,
+        fullName: fullName,
+        userId: data.user.id,
+        metadata: data.user.user_metadata
+      };
+
+      // Validate professor with UFBA systems
+      const validationResult = await validateProfessorWithUFBA(professorValidationData);
+      
+      // Log the registration attempt
+      await logProfessorRegistration(professorValidationData, validationResult);
+      
+      if (!validationResult.isValid) {
+        console.error('❌ Professor validation failed:', validationResult.message);
+        return encodedRedirect(
+          "error",
+          "/sign-up",
+          `Validação de professor falhou: ${validationResult.message}`,
+        );
+      }
+
+      console.log('✅ Professor validation successful:', validationResult.validationId);
+      
+      // Check if email is from UFBA domain
+      if (!isValidUFBAEmail(email)) {
+        console.log('⚠️ Warning: Professor using non-UFBA email domain');
+      }
+      
+    } catch (error) {
+      console.error('❌ Error during professor validation:', error);
+      return encodedRedirect(
+        "error",
+        "/sign-up",
+        "Erro na validação de professor. Tente novamente mais tarde.",
+      );
+    }
+  }
+
+  // Profile creation is now handled automatically by the database trigger
+  console.log('✅ Signup completed - trigger should handle profile creation');
+  console.log('=== SIGNUP ACTION END ===');
+
+  // Success case - this should execute after successful signup
+  return encodedRedirect(
+    "success",
+    "/sign-up",
+    userType === 'professor' 
+      ? "Conta de professor criada e validada com sucesso! Verifique sua caixa de entrada de email (incluindo spam/lixo eletrônico) e clique no link de confirmação para ativar sua conta. Você só poderá fazer login após confirmar seu email."
+      : "Conta criada com sucesso! Verifique sua caixa de entrada de email (incluindo spam/lixo eletrônico) e clique no link de confirmação para ativar sua conta. Você só poderá fazer login após confirmar seu email.",
+  );
 };
 
 export const signInAction = async (formData: FormData) => {
@@ -266,6 +304,12 @@ export const signInAction = async (formData: FormData) => {
     return redirect("/protected");
 
   } catch (error) {
+    // Only catch actual errors, not redirect exceptions
+    if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
+      // Re-throw redirect errors so Next.js can handle them
+      throw error;
+    }
+    
     console.error('Unexpected error in signInAction:', error);
     return encodedRedirect(
       "error",
@@ -319,6 +363,12 @@ export const forgotPasswordAction = async (formData: FormData) => {
     );
 
   } catch (error) {
+    // Only catch actual errors, not redirect exceptions
+    if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
+      // Re-throw redirect errors so Next.js can handle them
+      throw error;
+    }
+    
     console.error('Unexpected error in forgotPasswordAction:', error);
     return encodedRedirect(
       "error",
@@ -380,6 +430,12 @@ export const resetPasswordAction = async (formData: FormData) => {
     );
 
   } catch (error) {
+    // Only catch actual errors, not redirect exceptions
+    if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
+      // Re-throw redirect errors so Next.js can handle them
+      throw error;
+    }
+    
     console.error('Unexpected error in resetPasswordAction:', error);
     return encodedRedirect(
       "error",

@@ -22,10 +22,10 @@ import React from 'react';
 import Link from "next/link";
 import { RoleProvider, useRole } from "@/contexts/role-context";
 import { Button } from "@/components/ui/button";
-import HeaderAuthClient from "@/components/header-auth-client";
-import Footer from "@/components/footer";
-import AuthWrapper from "@/components/auth-wrapper";
-import ErrorBoundary from "@/components/error-boundary";
+import HeaderAuthClient from "@/components/auth/header-auth-client";
+import Footer from "@/components/layout/footer";
+import AuthWrapper from "@/components/auth/auth-wrapper";
+import ErrorBoundary from "@/components/layout/error-boundary";
 import { hasEnvVars } from "@/utils/supabase/check-env-vars";
 
 /**

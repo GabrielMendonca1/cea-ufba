@@ -1,4 +1,4 @@
-import ResearchOpportunitiesList from "@/components/infinite-scroll-list";
+import ResearchOpportunitiesList from "@/components/research/research-opportunities-list";
 
 /**
  * Home Page Component
