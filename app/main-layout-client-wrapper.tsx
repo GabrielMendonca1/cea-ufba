@@ -47,10 +47,6 @@ function HeaderContent() {
         
         {/* Navigation controls */}
         <div className="flex items-center gap-4">
-          {/* Role switcher for different user views */}
-          <Button onClick={toggleRole} variant="outline" size="sm">
-            Switch to {role === 'student' ? 'Teacher' : 'Student'} View
-          </Button>
 
           {/* Authentication controls */}
           <HeaderAuthClient />

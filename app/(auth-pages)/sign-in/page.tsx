@@ -1,6 +1,6 @@
 "use client";
 
-import { signInAction } from "@/app/actions";
+import { signInAction, resendConfirmationAction } from "@/app/actions";
 import { FormMessage, Message } from "@/components/forms/form-message";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ValidatedInput } from "@/components/forms/form-validation";
 import { SuccessPopup } from "@/components/ui/success-popup";
 import Link from "next/link";
-import { GraduationCap, Mail, Lock, LogIn, Shield, AlertTriangle } from "lucide-react";
+import { GraduationCap, Mail, Lock, LogIn, Shield, AlertTriangle, RefreshCw } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -19,6 +19,7 @@ export default function Login() {
   const [showMessagePopup, setShowMessagePopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
   const [popupType, setPopupType] = useState<"success" | "info" | "warning">("info");
+  const [showResendForm, setShowResendForm] = useState(false);
   
   // Convert URLSearchParams to Message format
   const message: Message | null = (() => {
@@ -39,6 +40,7 @@ export default function Login() {
         setPopupMessage(message.error);
         setPopupType("warning");
         setShowMessagePopup(true);
+        setShowResendForm(true); // Show resend form if email not confirmed
       } else if ('success' in message) {
         setPopupMessage(message.success);
         setPopupType("success");
@@ -76,20 +78,8 @@ export default function Login() {
         type={popupType}
       />
 
-      <div className="min-h-screen flex items-center justify-center p-4 mb-6">
+      <div className="min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md">
-          {/* Welcome Message for First-time Users */}
-          <div className="mt-6 text-center">
-            <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-8">
-              <GraduationCap className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
-                Bem-vindo ao CEA UFBA
-              </h3>
-              <p className="text-sm text-blue-700 dark:text-blue-200">
-                Explore oportunidades de pesquisa e conecte-se com a comunidade acadêmica
-              </p>
-            </div>
-          </div>
           <Card className="border-2 border-blue-200 dark:border-blue-800 shadow-2xl">
             <CardHeader className="text-center space-y-4">
               <div className="flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900 mx-auto">
@@ -97,10 +87,10 @@ export default function Login() {
               </div>
               <div>
                 <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Entrar
+                  Fazer Login
                 </CardTitle>
                 <CardDescription className="text-lg mt-2">
-                  Acesse sua conta CEA UFBA
+                  Acesse sua conta da UFBA
                 </CardDescription>
               </div>
               <Badge variant="outline" className="mx-auto">
@@ -184,6 +174,40 @@ export default function Login() {
                 {/* Only show non-critical error messages inline, important ones will be in popup */}
                 {message && 'error' in message && !message.error.includes('não foi confirmada') && (
                   <FormMessage message={message} />
+                )}
+
+                {/* Resend confirmation email form */}
+                {showResendForm && (
+                  <div className="border-t pt-4">
+                    <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                      <div className="flex gap-2 mb-3">
+                        <RefreshCw className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                        <div className="text-xs text-amber-700 dark:text-amber-300">
+                          <p className="font-medium mb-1">Email não confirmado?</p>
+                          <p>Reenvie o email de confirmação para sua conta.</p>
+                        </div>
+                      </div>
+                      
+                      <form action={resendConfirmationAction} className="space-y-3">
+                        <ValidatedInput
+                          name="email"
+                          type="email"
+                          label="Email para reenvio"
+                          placeholder="seu.email@ufba.br"
+                          icon={<Mail className="w-4 h-4" />}
+                          required
+                          validationRules={emailValidation}
+                          className="border-amber-300 focus:border-amber-500"
+                        />
+                        <SubmitButton 
+                          pendingText="Reenviando..." 
+                          className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 text-sm"
+                        >
+                          Reenviar Email de Confirmação
+                        </SubmitButton>
+                      </form>
+                    </div>
+                  </div>
                 )}
 
                 {/* Troubleshooting tips */}

@@ -462,3 +462,70 @@ export const signOutAction = async () => {
     return redirect("/sign-in");
   }
 };
+
+export const resendConfirmationAction = async (formData: FormData) => {
+  try {
+    const email = formData.get("email")?.toString()?.trim();
+
+    if (!email) {
+      return encodedRedirect("error", "/sign-in", "Email é obrigatório.");
+    }
+
+    if (!isValidEmail(email)) {
+      return encodedRedirect("error", "/sign-in", "Formato de email inválido.");
+    }
+
+    const supabase = await createClient();
+    const origin = (await headers()).get("origin");
+
+    if (!origin) {
+      throw new Error('Origin header not found');
+    }
+
+    // Try to resend confirmation email
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email,
+      options: {
+        emailRedirectTo: `${origin}/auth/callback`
+      }
+    });
+
+    if (error) {
+      console.error('Resend confirmation error:', error);
+      
+      // If user is already confirmed, redirect to sign in
+      if (error.message.includes('already confirmed')) {
+        return encodedRedirect(
+          "success",
+          "/sign-in",
+          "Sua conta já está confirmada. Tente fazer login.",
+        );
+      }
+      
+      return encodedRedirect(
+        "error",
+        "/sign-in",
+        getErrorMessage(error),
+      );
+    }
+
+    return encodedRedirect(
+      "success",
+      "/sign-in",
+      "Email de confirmação reenviado! Verifique sua caixa de entrada.",
+    );
+
+  } catch (error) {
+    if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
+      throw error;
+    }
+    
+    console.error('Unexpected error in resendConfirmationAction:', error);
+    return encodedRedirect(
+      "error",
+      "/sign-in",
+      "Erro interno do servidor. Tente novamente mais tarde.",
+    );
+  }
+};
