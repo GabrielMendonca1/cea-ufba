@@ -6,10 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client"; // Import the client version
 import { hasEnvVars } from "@/utils/supabase/check-env-vars";
+import { useRouter } from "next/navigation";
 
 export default function HeaderAuthClient() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
   
   useEffect(() => {
     const supabase = createClient();
@@ -43,6 +45,8 @@ export default function HeaderAuthClient() {
   const handleSignOut = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
+    router.refresh();
+    router.push("/sign-in");
   };
 
   if (!hasEnvVars) {
