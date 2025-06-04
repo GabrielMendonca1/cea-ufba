@@ -1,23 +1,9 @@
-import ResearchOpportunitiesList from "@/components/research/research-opportunities-list";
-
-/**
- * Home Page Component
- * 
- * This is the main landing page of the application that displays
- * a list of research opportunities in an infinite scroll format.
- * 
- * Core functionality:
- * - Displays research opportunities from the database
- * - Implements infinite scrolling for better performance
- * - Serves as the primary entry point for users
- */
-export default async function Home() {
+export default function Welcome() {
   return (
-    <>
-      <main className="flex-1 flex flex-col gap-6 px-4">
-        {/* Main research opportunities infinite scroll component */}
-        <ResearchOpportunitiesList />
-      </main>
-    </>
+    <main className="flex-1 flex flex-col items-center justify-center gap-6 px-4 text-center">
+      <h1 className="text-3xl font-bold">Bem-vindo ao CEA UFBA</h1>
+      <p className="text-muted-foreground">Use o menu para navegar e acessar as pesquisas disponíveis.</p>
+    </main>
   );
 }
+
