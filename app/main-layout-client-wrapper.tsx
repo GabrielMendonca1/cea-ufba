@@ -42,7 +42,9 @@ function HeaderContent() {
       <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
         {/* Brand/Logo section */}
         <div className="flex gap-5 items-center font-semibold">
-          <Link href={"/"}>CEA UFBA</Link>
+          <Link href="/">CEA UFBA</Link>
+          <Link href="/">Início</Link>
+          <Link href="/pesquisas">Pesquisas</Link>
         </div>
         
         {/* Navigation controls */}
