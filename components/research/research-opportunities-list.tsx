@@ -10,28 +10,35 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { useInfiniteResearchOpportunities, ResearchOpportunity } from "@/hooks/use-infinite-scroll";
+import {
+  useInfiniteResearchOpportunities,
+  ResearchOpportunity,
+} from "@/hooks/use-infinite-scroll";
 import { ResearchOpportunityCard } from "./research-opportunity-card";
 import { ResearchDetailsSheet } from "@/components/research/research-details-sheet";
-import { 
-  InitialLoadingSkeleton, 
-  LoadingIndicator, 
-  LoadMoreButton, 
-  EndOfListMessage, 
-  EmptyState, 
-  ErrorState 
+import {
+  InitialLoadingSkeleton,
+  LoadingIndicator,
+  LoadMoreButton,
+  EndOfListMessage,
+  EmptyState,
+  ErrorState,
 } from "./loading-states";
+import useAuthUser from "@/hooks/use-auth-user";
 
 /**
  * Research Opportunities List Component
- * 
+ *
  * This is the main component that displays research opportunities in an infinite scroll format.
  * Now refactored for better separation of concerns and maintainability.
  */
 export default function ResearchOpportunitiesList() {
   // State for detailed view functionality
-  const [selectedResearch, setSelectedResearch] = useState<ResearchOpportunity | null>(null);
+  const [selectedResearch, setSelectedResearch] =
+    useState<ResearchOpportunity | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  const { user } = useAuthUser();
 
   // Use custom hook for infinite scroll logic
   const {
@@ -42,7 +49,7 @@ export default function ResearchOpportunitiesList() {
     error,
     loadingRef,
     loadMoreItems,
-    retry
+    retry,
   } = useInfiniteResearchOpportunities();
 
   /**
@@ -50,6 +57,7 @@ export default function ResearchOpportunitiesList() {
    * Opens the detailed view sheet for a selected research opportunity
    */
   const handleResearchClick = (research: ResearchOpportunity) => {
+    if (!user) return;
     setSelectedResearch(research);
     setIsSheetOpen(true);
   };
@@ -58,10 +66,14 @@ export default function ResearchOpportunitiesList() {
    * Handle Apply Click
    * Handles application to a research opportunity
    */
-  const handleApplyClick = (e: React.MouseEvent, research: ResearchOpportunity) => {
+  const handleApplyClick = (
+    e: React.MouseEvent,
+    research: ResearchOpportunity,
+  ) => {
     e.stopPropagation();
+    if (!user) return;
     // TODO: Implement application logic
-    console.log('Apply to research:', research.id);
+    console.log("Apply to research:", research.id);
   };
 
   // Show initial loading state
@@ -95,6 +107,7 @@ export default function ResearchOpportunitiesList() {
             index={index}
             onCardClick={handleResearchClick}
             onApplyClick={handleApplyClick}
+            disabled={!user}
           />
         ))}
       </div>
@@ -102,13 +115,13 @@ export default function ResearchOpportunitiesList() {
       {/* Loading and Pagination States */}
       <div ref={loadingRef} className="mt-8">
         {loading && <LoadingIndicator />}
-        
+
         {!loading && hasMore && items.length > 0 && (
           <LoadMoreButton onLoadMore={loadMoreItems} loading={loading} />
         )}
-        
+
         {!hasMore && items.length > 0 && <EndOfListMessage />}
-        
+
         {items.length === 0 && !loading && <EmptyState />}
       </div>
 
@@ -116,13 +129,16 @@ export default function ResearchOpportunitiesList() {
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent className="w-full sm:max-w-3xl overflow-y-auto">
           {selectedResearch && (
-            <ResearchDetailsSheet 
-              research={selectedResearch} 
-              onApply={() => handleApplyClick({} as React.MouseEvent, selectedResearch)}
+            <ResearchDetailsSheet
+              research={selectedResearch}
+              onApply={() =>
+                handleApplyClick({} as React.MouseEvent, selectedResearch)
+              }
+              disabled={!user}
             />
           )}
         </SheetContent>
       </Sheet>
     </div>
   );
-} 
+}

@@ -47,16 +47,18 @@ export async function updateSession(request: NextRequest) {
 
   // List of public routes that don't require authentication
   const publicRoutes = [
-    '/',
-    '/sign-in',
-    '/sign-up', 
-    '/forgot-password',
-    '/auth/callback'
+    "/",
+    "/sign-in",
+    "/sign-up",
+    "/forgot-password",
+    "/auth/callback",
+    "/pesquisas",
   ];
 
-  const isPublicRoute = publicRoutes.some(route => 
-    request.nextUrl.pathname === route || 
-    request.nextUrl.pathname.startsWith('/auth/')
+  const isPublicRoute = publicRoutes.some(
+    (route) =>
+      request.nextUrl.pathname === route ||
+      request.nextUrl.pathname.startsWith("/auth/"),
   );
 
   if (!user && !isPublicRoute) {
@@ -80,4 +82,4 @@ export async function updateSession(request: NextRequest) {
   // of sync and terminate the user's session prematurely!
 
   return supabaseResponse;
-} 
+}
