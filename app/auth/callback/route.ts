@@ -70,6 +70,6 @@ export async function GET(request: Request) {
   }
 
   // URL to redirect to after sign up process completes
-  console.log('🔄 Redirecting to protected route');
-  return NextResponse.redirect(`${origin}/protected`);
+  console.log('🔄 Redirecting to dashboard');
+  return NextResponse.redirect(`${origin}/dashboard`);
 }
