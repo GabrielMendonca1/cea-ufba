@@ -301,7 +301,7 @@ export const signInAction = async (formData: FormData) => {
       // Continue to protected route
     }
 
-    return redirect("/protected");
+    return redirect("/dashboard");
 
   } catch (error) {
     // Only catch actual errors, not redirect exceptions
