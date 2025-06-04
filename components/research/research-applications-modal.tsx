@@ -7,7 +7,6 @@ import {
   DialogHeader, 
   DialogTitle 
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,7 +25,6 @@ import {
   Eye,
   MoreHorizontal
 } from "lucide-react";
-// Table components inline to avoid dependency issues
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,7 +44,9 @@ interface ApplicationWithProfile {
   student_id: string;
   research_opportunity_id: string;
   status: 'pending' | 'accepted' | 'rejected' | 'withdrawn' | null;
-  cover_letter: string | null;
+  cover_letter_pdf: string | null;
+  cv_vitae_pdf: string | null;
+  academic_record_pdf: string | null;
   created_at: string;
   updated_at: string;
   user_profiles?: {
@@ -54,7 +54,8 @@ interface ApplicationWithProfile {
     full_name: string | null;
     email: string;
     student_id: string | null;
-    course: string | null;
+    department: string | null;
+    research_area: string | null;
     avatar_url: string | null;
     bio: string | null;
   };
@@ -68,6 +69,9 @@ export function ResearchApplicationsModal({
 }: ResearchApplicationsModalProps) {
   const [applications, setApplications] = useState<ApplicationWithProfile[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedApplication, setSelectedApplication] = useState<ApplicationWithProfile | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'inscricoes' | 'deferidos'>('inscricoes');
 
   // Fetch applications when modal opens
   useEffect(() => {
@@ -105,7 +109,6 @@ export function ResearchApplicationsModal({
       });
 
       if (response.ok) {
-        // Update local state
         setApplications(prev => 
           prev.map(app => 
             app.id === applicationId 
@@ -135,9 +138,6 @@ export function ResearchApplicationsModal({
     }
   };
 
-  const [selectedApplication, setSelectedApplication] = useState<ApplicationWithProfile | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-
   const handleViewDetails = (application: ApplicationWithProfile) => {
     setSelectedApplication(application);
     setIsDetailModalOpen(true);
@@ -147,122 +147,134 @@ export function ResearchApplicationsModal({
     applications: ApplicationWithProfile[], 
     showActions?: boolean 
   }) => (
-    <div className="rounded-lg border overflow-hidden bg-card">
-      {/* Header */}
-      <div className="grid grid-cols-8 gap-4 p-4 bg-muted/50 border-b font-medium text-sm">
-        <div className="col-span-1">Avatar</div>
-        <div className="col-span-2">Candidato</div>
-        <div className="col-span-1">Email</div>
-        <div className="col-span-1">Matrícula</div>
-        <div className="col-span-1">Curso</div>
-        <div className="col-span-1">Data</div>
-        <div className="col-span-1">Ações</div>
-      </div>
-      
-      {/* Rows */}
-      <div className="divide-y">
-        {applications.map((application) => (
-          <div key={application.id} className="grid grid-cols-8 gap-4 p-4 hover:bg-muted/30 transition-colors">
-            <div className="col-span-1 flex items-center">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={application.user_profiles?.avatar_url || undefined} />
-                <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                  {application.user_profiles?.full_name?.charAt(0) || 
-                   application.user_profiles?.email?.charAt(0) || 'U'}
-                </AvatarFallback>
-              </Avatar>
-            </div>
-            
-            <div className="col-span-2 flex flex-col justify-center">
-              <div className="font-semibold text-sm">
-                {application.user_profiles?.full_name || 'Nome não informado'}
-              </div>
-              {application.user_profiles?.bio && (
-                <div className="text-xs text-muted-foreground truncate">
-                  {application.user_profiles.bio}
-                </div>
-              )}
-              <div className="mt-1">
-                {getStatusBadge(application.status || 'pending')}
-              </div>
-            </div>
-            
-            <div className="col-span-1 flex flex-col justify-center">
-              <div className="flex items-center gap-2">
-                <Mail className="w-3 h-3 text-muted-foreground" />
-                <span className="text-xs truncate">{application.user_profiles?.email}</span>
-              </div>
-            </div>
-            
-            <div className="col-span-1 flex items-center">
-              {application.user_profiles?.student_id ? (
-                <div className="flex items-center gap-2">
-                  <User className="w-3 h-3 text-muted-foreground" />
-                  <span className="text-xs font-mono">{application.user_profiles.student_id}</span>
-                </div>
-              ) : (
-                <span className="text-muted-foreground text-xs">-</span>
-              )}
-            </div>
-            
-            <div className="col-span-1 flex items-center">
-              {application.user_profiles?.course ? (
-                <div className="flex items-center gap-2">
-                  <GraduationCap className="w-3 h-3 text-muted-foreground" />
-                  <span className="text-xs truncate">{application.user_profiles.course}</span>
-                </div>
-              ) : (
-                <span className="text-muted-foreground text-xs">-</span>
-              )}
-            </div>
-            
-            <div className="col-span-1 flex items-center">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-3 h-3 text-muted-foreground" />
-                <span className="text-xs">
-                  {new Date(application.created_at).toLocaleDateString('pt-BR')}
-                </span>
-              </div>
-            </div>
-            
-            <div className="col-span-1 flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleViewDetails(application)}
-                className="h-8 w-8 p-0"
+    <div className="h-full overflow-hidden">
+      <div className="h-full overflow-y-auto">
+        <table className="w-full">
+          <thead className="sticky top-0 bg-muted/50 border-b border-border">
+            <tr>
+              <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[200px]">Candidato</th>
+              <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[250px]">Email</th>
+              <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[150px]">Matrícula</th>
+              <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[200px]">Departamento</th>
+              <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[150px]">Histórico</th>
+              <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[150px]">Cover Letter</th>
+              <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[150px]">CV</th>
+              <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[100px]">Status</th>
+              {showActions && <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[120px]">Ações</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {applications.map((application) => (
+              <tr 
+                key={application.id} 
+                className="border-b border-border/50 hover:bg-muted/30 transition-colors"
               >
-                <Eye className="w-4 h-4" />
-              </Button>
-              
-              {showActions && application.status === 'pending' && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <MoreHorizontal className="w-4 h-4" />
+                <td className="p-4">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={application.user_profiles?.avatar_url || undefined} />
+                      <AvatarFallback className="bg-muted text-xs">
+                        {application.user_profiles?.full_name?.charAt(0) || 
+                         application.user_profiles?.email?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-medium text-sm">
+                        {application.user_profiles?.full_name || 'Nome não informado'}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {new Date(application.created_at).toLocaleDateString('pt-BR')}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                
+                <td className="p-4">
+                  <div className="text-sm text-foreground">
+                    {application.user_profiles?.email}
+                  </div>
+                </td>
+                
+                <td className="p-4">
+                  <div className="text-sm font-mono text-foreground">
+                    {application.user_profiles?.student_id || '-'}
+                  </div>
+                </td>
+                
+                <td className="p-4">
+                  <div className="text-sm text-foreground">
+                    {application.user_profiles?.department || '-'}
+                  </div>
+                </td>
+                
+                <td className="p-4">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-8 px-3 text-xs"
+                    disabled
+                  >
+                    📄 Ver PDF
+                  </Button>
+                </td>
+                
+                <td className="p-4">
+                  {application.cover_letter_pdf ? (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 px-3 text-xs"
+                      onClick={() => handleViewDetails(application)}
+                    >
+                      📄 Ver PDF
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem 
-                      onClick={() => handleStatusUpdate(application.id, 'accepted')}
-                      className="text-green-600"
-                    >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Aceitar
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => handleStatusUpdate(application.id, 'rejected')}
-                      className="text-red-600"
-                    >
-                      <XCircle className="w-4 h-4 mr-2" />
-                      Rejeitar
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
-          </div>
-        ))}
+                  ) : (
+                    <span className="text-xs text-muted-foreground">-</span>
+                  )}
+                </td>
+                
+                <td className="p-4">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-8 px-3 text-xs"
+                    disabled
+                  >
+                    📄 Ver CV
+                  </Button>
+                </td>
+                
+                <td className="p-4">
+                  {getStatusBadge(application.status || 'pending')}
+                </td>
+                
+                {showActions && (
+                  <td className="p-4">
+                    {application.status === 'pending' && (
+                      <div className="flex gap-1">
+                        <Button
+                          onClick={() => handleStatusUpdate(application.id, 'accepted')}
+                          size="sm"
+                          className="h-7 px-2 text-xs bg-green-600 hover:bg-green-700"
+                        >
+                          ✓
+                        </Button>
+                        <Button
+                          onClick={() => handleStatusUpdate(application.id, 'rejected')}
+                          variant="outline"
+                          size="sm"
+                          className="h-7 px-2 text-xs border-red-200 text-red-600 hover:bg-red-50"
+                        >
+                          ✕
+                        </Button>
+                      </div>
+                    )}
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -290,7 +302,6 @@ export function ResearchApplicationsModal({
 
         {selectedApplication && (
           <div className="space-y-6 mt-6">
-            {/* Informações básicas */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Email</label>
@@ -310,12 +321,12 @@ export function ResearchApplicationsModal({
                 </div>
               )}
               
-              {selectedApplication.user_profiles?.course && (
+              {selectedApplication.user_profiles?.department && (
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Curso</label>
+                  <label className="text-sm font-medium text-muted-foreground">Departamento</label>
                   <div className="flex items-center gap-2 mt-1">
                     <GraduationCap className="w-4 h-4 text-muted-foreground" />
-                    <span>{selectedApplication.user_profiles.course}</span>
+                    <span>{selectedApplication.user_profiles.department}</span>
                   </div>
                 </div>
               )}
@@ -329,7 +340,6 @@ export function ResearchApplicationsModal({
               </div>
             </div>
 
-            {/* Bio */}
             {selectedApplication.user_profiles?.bio && (
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Sobre o Candidato</label>
@@ -339,17 +349,25 @@ export function ResearchApplicationsModal({
               </div>
             )}
 
-            {/* Carta de apresentação */}
-            {selectedApplication.cover_letter && (
+            {selectedApplication.cover_letter_pdf && (
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Carta de Apresentação</label>
+                <label className="text-sm font-medium text-muted-foreground">Carta de Apresentação (PDF)</label>
                 <div className="mt-2 p-4 bg-muted rounded-lg">
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{selectedApplication.cover_letter}</p>
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-muted-foreground" />
+                    <a 
+                      href={selectedApplication.cover_letter_pdf} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-sm text-primary hover:underline"
+                    >
+                      Visualizar PDF da Carta de Apresentação
+                    </a>
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* Ações */}
             {selectedApplication.status === 'pending' && (
               <div className="flex gap-3 pt-4 border-t">
                 <Button
@@ -381,118 +399,120 @@ export function ResearchApplicationsModal({
     </Dialog>
   );
 
+  if (!isOpen) return null;
+
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-hidden backdrop-blur-sm bg-background/95 shadow-2xl border-2">
-          <DialogHeader className="pb-6 border-b">
-            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              📋 Inscrições - {researchTitle}
-            </DialogTitle>
-          </DialogHeader>
+      {/* Custom Modal Overlay */}
+      <div 
+        className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <div 
+          className="bg-background shadow-2xl rounded-lg overflow-hidden flex flex-col max-w-[90vw] max-h-[85vh] w-full"
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            width: '65vw',
+            height: '60vh',
+            minWidth: '800px',
+            minHeight: '500px'
+          }}
+        >
+          {/* Header */}
+          <div className="px-6 py-3 bg-background flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-foreground">
+                Inscrições - {researchTitle}
+              </h2>
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-muted rounded-md transition-colors"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
 
-          <Tabs defaultValue="inscricoes" className="w-full flex-1 flex flex-col">
-            <TabsList className="grid w-full grid-cols-2 mb-6 bg-muted/50 backdrop-blur-sm">
-              <TabsTrigger value="inscricoes" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-md">
-                <Clock className="w-4 h-4" />
-                📝 Inscrições ({pendingApplications.length})
-              </TabsTrigger>
-              <TabsTrigger value="deferidos" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-md">
-                <CheckCircle className="w-4 h-4" />
-                ✅ Deferidos ({acceptedApplications.length})
-              </TabsTrigger>
-            </TabsList>
+          {/* Tabs */}
+          <div className="flex border-b border-border/50 bg-background flex-shrink-0">
+            <button
+              onClick={() => setActiveTab('inscricoes')}
+              className={`px-6 py-2 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'inscricoes'
+                  ? 'border-primary text-primary bg-primary/5'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Inscrições ({pendingApplications.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('deferidos')}
+              className={`px-6 py-2 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'deferidos'
+                  ? 'border-primary text-primary bg-primary/5'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Deferidos ({acceptedApplications.length})
+            </button>
+          </div>
 
-            <div className="flex-1 overflow-hidden">
-              <TabsContent value="inscricoes" className="h-full">
+          {/* Content */}
+          <div className="flex-1 overflow-hidden">
+            {activeTab === 'inscricoes' && (
+              <div className="h-full">
                 {loading ? (
-                  <div className="flex items-center justify-center py-16">
+                  <div className="flex items-center justify-center h-full">
                     <div className="flex flex-col items-center gap-4">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-primary"></div>
-                      <p className="text-muted-foreground">Carregando inscrições...</p>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                      <p className="text-sm text-muted-foreground">Carregando inscrições...</p>
                     </div>
                   </div>
                 ) : pendingApplications.length > 0 ? (
-                  <div className="h-full flex flex-col">
-                    <div className="flex items-center justify-between mb-6 p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-full">
-                          <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-yellow-800 dark:text-yellow-200">
-                            {pendingApplications.length} candidatura(s) aguardando avaliação
-                          </h3>
-                          <p className="text-sm text-yellow-600 dark:text-yellow-400">
-                            Revise os candidatos e tome uma decisão
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex-1 overflow-y-auto">
-                      <ApplicationsTable applications={pendingApplications} showActions={true} />
-                    </div>
-                  </div>
+                  <ApplicationsTable applications={pendingApplications} showActions={true} />
                 ) : (
-                  <div className="text-center py-16">
-                    <div className="p-8 bg-muted/50 rounded-xl inline-block backdrop-blur-sm">
-                      <Clock className="w-16 h-16 mx-auto text-muted-foreground mb-6" />
-                      <h3 className="text-lg font-semibold mb-2">Nenhuma inscrição pendente</h3>
-                      <p className="text-muted-foreground">
+                  <div className="flex items-center justify-center h-full p-8">
+                    <div className="text-center">
+                      <Clock className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                      <h3 className="text-base font-medium mb-2">Nenhuma inscrição pendente</h3>
+                      <p className="text-sm text-muted-foreground">
                         Todas as candidaturas foram avaliadas ou ainda não há inscrições
                       </p>
                     </div>
                   </div>
                 )}
-              </TabsContent>
+              </div>
+            )}
 
-              <TabsContent value="deferidos" className="h-full">
+            {activeTab === 'deferidos' && (
+              <div className="h-full">
                 {loading ? (
-                  <div className="flex items-center justify-center py-16">
+                  <div className="flex items-center justify-center h-full">
                     <div className="flex flex-col items-center gap-4">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-primary"></div>
-                      <p className="text-muted-foreground">Carregando candidatos aceitos...</p>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                      <p className="text-sm text-muted-foreground">Carregando candidatos aceitos...</p>
                     </div>
                   </div>
                 ) : acceptedApplications.length > 0 ? (
-                  <div className="h-full flex flex-col">
-                    <div className="flex items-center justify-between mb-6 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
-                          <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-green-800 dark:text-green-200">
-                            {acceptedApplications.length} candidato(s) aprovado(s)
-                          </h3>
-                          <p className="text-sm text-green-600 dark:text-green-400">
-                            Candidatos selecionados para a pesquisa
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex-1 overflow-y-auto">
-                      <ApplicationsTable applications={acceptedApplications} showActions={false} />
-                    </div>
-                  </div>
+                  <ApplicationsTable applications={acceptedApplications} showActions={false} />
                 ) : (
-                  <div className="text-center py-16">
-                    <div className="p-8 bg-muted/50 rounded-xl inline-block backdrop-blur-sm">
-                      <CheckCircle className="w-16 h-16 mx-auto text-muted-foreground mb-6" />
-                      <h3 className="text-lg font-semibold mb-2">Nenhum candidato aceito</h3>
-                      <p className="text-muted-foreground">
+                  <div className="flex items-center justify-center h-full p-8">
+                    <div className="text-center">
+                      <CheckCircle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                      <h3 className="text-base font-medium mb-2">Nenhum candidato aceito</h3>
+                      <p className="text-sm text-muted-foreground">
                         Ainda não há candidatos aprovados para esta pesquisa
                       </p>
                     </div>
                   </div>
                 )}
-              </TabsContent>
-            </div>
-          </Tabs>
-        </DialogContent>
-      </Dialog>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       <ApplicationDetailModal />
     </>
   );
-} 
+}

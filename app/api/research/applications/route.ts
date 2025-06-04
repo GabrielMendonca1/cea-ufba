@@ -25,7 +25,8 @@ export async function GET(request: NextRequest) {
           full_name,
           email,
           student_id,
-          course,
+          department,
+          research_area,
           avatar_url,
           bio
         )
