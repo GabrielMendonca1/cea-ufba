@@ -22,13 +22,18 @@ export async function GET(request: NextRequest) {
         *,
         user_profiles (
           id,
-          full_name,
           email,
-          student_id,
+          full_name,
+          user_type,
           department,
           research_area,
+          bio,
+          lattes_url,
+          student_id,
           avatar_url,
-          bio
+          is_profile_complete,
+          has_completed_onboarding,
+          created_at
         )
       `)
       .eq('research_opportunity_id', researchId)

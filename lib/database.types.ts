@@ -54,6 +54,27 @@ export type Database = {
           },
         ]
       }
+      posts: {
+        Row: {
+          id: string
+          content_markdown: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          content_markdown: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          content_markdown?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       research_opportunities: {
         Row: {
           contact_email: string
@@ -129,6 +150,51 @@ export type Database = {
             referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      scientific_outreach: {
+        Row: {
+          id: string
+          professor_id: string
+          post_id: string
+          title: string
+          description: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          professor_id: string
+          post_id: string
+          title: string
+          description: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          professor_id?: string
+          post_id?: string
+          title?: string
+          description?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scientific_outreach_professor_id_fkey"
+            columns: ["professor_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scientific_outreach_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: true
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          }
         ]
       }
       user_profiles: {

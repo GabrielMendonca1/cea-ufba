@@ -51,13 +51,18 @@ interface ApplicationWithProfile {
   updated_at: string;
   user_profiles?: {
     id: string;
-    full_name: string | null;
     email: string;
-    student_id: string | null;
+    full_name: string | null;
+    user_type: string | null;
     department: string | null;
     research_area: string | null;
-    avatar_url: string | null;
     bio: string | null;
+    lattes_url: string | null;
+    student_id: string | null;
+    avatar_url: string | null;
+    is_profile_complete: boolean | null;
+    has_completed_onboarding: boolean | null;
+    created_at: string;
   };
 }
 
@@ -133,6 +138,8 @@ export function ResearchApplicationsModal({
         return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200"><CheckCircle className="w-3 h-3 mr-1" />Aceito</Badge>;
       case 'rejected':
         return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200"><XCircle className="w-3 h-3 mr-1" />Rejeitado</Badge>;
+      case 'withdrawn':
+        return <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200"><XCircle className="w-3 h-3 mr-1" />Retirado</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -153,12 +160,14 @@ export function ResearchApplicationsModal({
           <thead className="sticky top-0 bg-muted/50 border-b border-border">
             <tr>
               <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[200px]">Candidato</th>
-              <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[250px]">Email</th>
-              <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[150px]">Matrícula</th>
-              <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[200px]">Departamento</th>
-              <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[150px]">Histórico</th>
-              <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[150px]">Cover Letter</th>
-              <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[150px]">CV</th>
+              <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[200px]">Email</th>
+              <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[120px]">Matrícula</th>
+              <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[180px]">Departamento</th>
+              <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[150px]">Área de Pesquisa</th>
+              <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[100px]">Currículo Lattes</th>
+              <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[120px]">Histórico</th>
+              <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[120px]">Carta</th>
+              <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[100px]">CV</th>
               <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[100px]">Status</th>
               {showActions && <th className="text-left p-4 text-sm font-medium text-muted-foreground w-[120px]">Ações</th>}
             </tr>
@@ -208,14 +217,39 @@ export function ResearchApplicationsModal({
                 </td>
                 
                 <td className="p-4">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-8 px-3 text-xs"
-                    disabled
-                  >
-                    📄 Ver PDF
-                  </Button>
+                  <div className="text-sm text-foreground">
+                    {application.user_profiles?.research_area || '-'}
+                  </div>
+                </td>
+                
+                <td className="p-4">
+                  {application.user_profiles?.lattes_url ? (
+                    <a 
+                      href={application.user_profiles.lattes_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-sm text-primary hover:underline"
+                    >
+                      📄 Ver Lattes
+                    </a>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">-</span>
+                  )}
+                </td>
+                
+                <td className="p-4">
+                  {application.academic_record_pdf ? (
+                    <a 
+                      href={application.academic_record_pdf} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-sm text-primary hover:underline"
+                    >
+                      📄 Ver PDF
+                    </a>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">-</span>
+                  )}
                 </td>
                 
                 <td className="p-4">
@@ -226,7 +260,7 @@ export function ResearchApplicationsModal({
                       className="h-8 px-3 text-xs"
                       onClick={() => handleViewDetails(application)}
                     >
-                      📄 Ver PDF
+                      📄 Ver Carta
                     </Button>
                   ) : (
                     <span className="text-xs text-muted-foreground">-</span>
@@ -234,14 +268,18 @@ export function ResearchApplicationsModal({
                 </td>
                 
                 <td className="p-4">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-8 px-3 text-xs"
-                    disabled
-                  >
-                    📄 Ver CV
-                  </Button>
+                  {application.cv_vitae_pdf ? (
+                    <a 
+                      href={application.cv_vitae_pdf} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-sm text-primary hover:underline"
+                    >
+                      📄 Ver CV
+                    </a>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">-</span>
+                  )}
                 </td>
                 
                 <td className="p-4">
@@ -256,6 +294,7 @@ export function ResearchApplicationsModal({
                           onClick={() => handleStatusUpdate(application.id, 'accepted')}
                           size="sm"
                           className="h-7 px-2 text-xs bg-green-600 hover:bg-green-700"
+                          title="Aceitar candidatura"
                         >
                           ✓
                         </Button>
@@ -264,6 +303,7 @@ export function ResearchApplicationsModal({
                           variant="outline"
                           size="sm"
                           className="h-7 px-2 text-xs border-red-200 text-red-600 hover:bg-red-50"
+                          title="Rejeitar candidatura"
                         >
                           ✕
                         </Button>
@@ -281,7 +321,7 @@ export function ResearchApplicationsModal({
 
   const ApplicationDetailModal = () => (
     <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold flex items-center gap-3">
             <Avatar className="h-12 w-12">
@@ -302,72 +342,169 @@ export function ResearchApplicationsModal({
 
         {selectedApplication && (
           <div className="space-y-6 mt-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Email</label>
-                <div className="flex items-center gap-2 mt-1">
-                  <Mail className="w-4 h-4 text-muted-foreground" />
-                  <span>{selectedApplication.user_profiles?.email}</span>
-                </div>
-              </div>
-              
-              {selectedApplication.user_profiles?.student_id && (
+            {/* Informações Básicas */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4 text-foreground">Informações Pessoais</h3>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Matrícula</label>
+                  <label className="text-sm font-medium text-muted-foreground">Email</label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Mail className="w-4 h-4 text-muted-foreground" />
+                    <span>{selectedApplication.user_profiles?.email}</span>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Nome Completo</label>
                   <div className="flex items-center gap-2 mt-1">
                     <User className="w-4 h-4 text-muted-foreground" />
-                    <span className="font-mono">{selectedApplication.user_profiles.student_id}</span>
+                    <span>{selectedApplication.user_profiles?.full_name || 'Não informado'}</span>
                   </div>
                 </div>
-              )}
-              
-              {selectedApplication.user_profiles?.department && (
+                
+                {selectedApplication.user_profiles?.student_id && (
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Matrícula</label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <User className="w-4 h-4 text-muted-foreground" />
+                      <span className="font-mono">{selectedApplication.user_profiles.student_id}</span>
+                    </div>
+                  </div>
+                )}
+                
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Departamento</label>
+                  <label className="text-sm font-medium text-muted-foreground">Tipo de Usuário</label>
                   <div className="flex items-center gap-2 mt-1">
                     <GraduationCap className="w-4 h-4 text-muted-foreground" />
-                    <span>{selectedApplication.user_profiles.department}</span>
+                    <span>{selectedApplication.user_profiles?.user_type || 'Não informado'}</span>
                   </div>
                 </div>
-              )}
-              
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Data da Inscrição</label>
-                <div className="flex items-center gap-2 mt-1">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <span>{new Date(selectedApplication.created_at).toLocaleDateString('pt-BR')}</span>
+                
+                {selectedApplication.user_profiles?.department && (
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Departamento</label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <GraduationCap className="w-4 h-4 text-muted-foreground" />
+                      <span>{selectedApplication.user_profiles.department}</span>
+                    </div>
+                  </div>
+                )}
+                
+                {selectedApplication.user_profiles?.research_area && (
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Área de Pesquisa</label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <GraduationCap className="w-4 h-4 text-muted-foreground" />
+                      <span>{selectedApplication.user_profiles.research_area}</span>
+                    </div>
+                  </div>
+                )}
+                
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Data da Inscrição</label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                    <span>{new Date(selectedApplication.created_at).toLocaleDateString('pt-BR')}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Perfil Completo</label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <CheckCircle className="w-4 h-4 text-muted-foreground" />
+                    <span className={selectedApplication.user_profiles?.is_profile_complete ? 'text-green-600' : 'text-red-600'}>
+                      {selectedApplication.user_profiles?.is_profile_complete ? 'Sim' : 'Não'}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {selectedApplication.user_profiles?.bio && (
+            {/* Currículo Lattes */}
+            {selectedApplication.user_profiles?.lattes_url && (
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Sobre o Candidato</label>
-                <div className="mt-2 p-4 bg-muted rounded-lg">
-                  <p className="text-sm leading-relaxed">{selectedApplication.user_profiles.bio}</p>
-                </div>
-              </div>
-            )}
-
-            {selectedApplication.cover_letter_pdf && (
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Carta de Apresentação (PDF)</label>
-                <div className="mt-2 p-4 bg-muted rounded-lg">
+                <h3 className="text-lg font-semibold mb-3 text-foreground">Currículo Lattes</h3>
+                <div className="p-4 bg-muted rounded-lg">
                   <div className="flex items-center gap-2">
                     <FileText className="w-4 h-4 text-muted-foreground" />
                     <a 
-                      href={selectedApplication.cover_letter_pdf} 
+                      href={selectedApplication.user_profiles.lattes_url} 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="text-sm text-primary hover:underline"
                     >
-                      Visualizar PDF da Carta de Apresentação
+                      Visualizar Currículo Lattes
                     </a>
                   </div>
                 </div>
               </div>
             )}
 
+            {/* Biografia */}
+            {selectedApplication.user_profiles?.bio && (
+              <div>
+                <h3 className="text-lg font-semibold mb-3 text-foreground">Sobre o Candidato</h3>
+                <div className="p-4 bg-muted rounded-lg">
+                  <p className="text-sm leading-relaxed">{selectedApplication.user_profiles.bio}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Documentos */}
+            <div>
+              <h3 className="text-lg font-semibold mb-3 text-foreground">Documentos Enviados</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {selectedApplication.cover_letter_pdf && (
+                  <div className="p-4 bg-muted rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-muted-foreground" />
+                      <a 
+                        href={selectedApplication.cover_letter_pdf} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-sm text-primary hover:underline"
+                      >
+                        Carta de Apresentação
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {selectedApplication.cv_vitae_pdf && (
+                  <div className="p-4 bg-muted rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-muted-foreground" />
+                      <a 
+                        href={selectedApplication.cv_vitae_pdf} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-sm text-primary hover:underline"
+                      >
+                        Curriculum Vitae
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {selectedApplication.academic_record_pdf && (
+                  <div className="p-4 bg-muted rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-muted-foreground" />
+                      <a 
+                        href={selectedApplication.academic_record_pdf} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-sm text-primary hover:underline"
+                      >
+                        Histórico Acadêmico
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Ações */}
             {selectedApplication.status === 'pending' && (
               <div className="flex gap-3 pt-4 border-t">
                 <Button

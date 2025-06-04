@@ -10,6 +10,7 @@ import { InfoIcon, User, Mail, Calendar, Shield, Phone, BookOpen, Users, FileTex
 import { getDashboardData, getDebugData } from "@/lib/queries";
 import { EditProfileForm } from "@/components/forms/EditProfileForm";
 import { ResearchOpportunityManager } from "@/components/research/ResearchOpportunityManager";
+import { PostManager } from "@/components/posts/PostManager";
 
 /**
  * Dashboard Page Component
@@ -71,22 +72,20 @@ export default async function DashboardPage() {
   return (
     <div className="container mx-auto py-6 px-4 flex-1">
       <div className="flex flex-col space-y-6">
-
-
         {/* Header */}
         <div className="flex items-center justify-between space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">
-            Olá, {userProfile?.full_name || 'Usuário'}!
+            Olá, {userProfile?.full_name || "Usuário"}!
           </h1>
         </div>
-        
+
         {/* User Profile Section with Edit Button */}
         <div className="flex flex-col gap-4">
           <div className="flex justify-between items-center">
-            <h2 className="font-bold text-2xl">Profile Information</h2>
+            <h2 className="font-bold text-2xl">Informações do Perfil</h2>
             <EditProfileForm userProfile={userProfile} userEmail={userEmail} />
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* User Email Card */}
             <Card>
@@ -99,7 +98,7 @@ export default async function DashboardPage() {
               <CardContent>
                 <div className="text-lg font-bold">{userEmail}</div>
                 <p className="text-xs text-muted-foreground">
-                  Confirmed: {emailConfirmed}
+                  Confirmado: {emailConfirmed}
                 </p>
               </CardContent>
             </Card>
@@ -109,14 +108,14 @@ export default async function DashboardPage() {
               <CardHeader className="flex flex-row items-center space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <User className="w-4 h-4" />
-                  Full Name
+                  Nome Completo
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-lg font-bold">{userProfile?.full_name || 'Not provided'}</div>
-                <p className="text-xs text-muted-foreground">
-                  Display name
-                </p>
+                <div className="text-lg font-bold">
+                  {userProfile?.full_name || "Não informado"}
+                </div>
+                <p className="text-xs text-muted-foreground">Nome de exibição</p>
               </CardContent>
             </Card>
 
@@ -125,14 +124,16 @@ export default async function DashboardPage() {
               <CardHeader className="flex flex-row items-center space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <GraduationCap className="w-4 h-4" />
-                  User Type
+                  Tipo de Usuário
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-lg font-bold capitalize">{userProfile?.user_type || userType}</div>
-                <p className="text-xs text-muted-foreground">
-                  Account type
-                </p>
+                <div className="text-lg font-bold capitalize">
+                  {userProfile?.user_type === 'professor' ? 'Professor' : 
+                   userProfile?.user_type === 'student' ? 'Estudante' : 
+                   userType === 'professor' ? 'Professor' : 'Estudante'}
+                </div>
+                <p className="text-xs text-muted-foreground">Tipo de conta</p>
               </CardContent>
             </Card>
 
@@ -141,13 +142,15 @@ export default async function DashboardPage() {
               <CardHeader className="flex flex-row items-center space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <Building className="w-4 h-4" />
-                  Department
+                  Departamento
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-lg font-bold">{userProfile?.department || 'Not specified'}</div>
+                <div className="text-lg font-bold">
+                  {userProfile?.department || "Não especificado"}
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  Academic department
+                  Departamento acadêmico
                 </p>
               </CardContent>
             </Card>
@@ -157,14 +160,14 @@ export default async function DashboardPage() {
               <CardHeader className="flex flex-row items-center space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <MapPin className="w-4 h-4" />
-                  Research Area
+                  Área de Pesquisa
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-lg font-bold">{userProfile?.research_area || 'Not specified'}</div>
-                <p className="text-xs text-muted-foreground">
-                  Field of study
-                </p>
+                <div className="text-lg font-bold">
+                  {userProfile?.research_area || "Não especificado"}
+                </div>
+                <p className="text-xs text-muted-foreground">Campo de estudo</p>
               </CardContent>
             </Card>
 
@@ -173,30 +176,34 @@ export default async function DashboardPage() {
               <CardHeader className="flex flex-row items-center space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <FileText className="w-4 h-4" />
-                  Bio
+                  Biografia
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-sm">{userProfile?.bio || 'No bio provided'}</div>
+                <div className="text-sm">
+                  {userProfile?.bio || "Nenhuma biografia fornecida"}
+                </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Personal information
+                  Informações pessoais
                 </p>
               </CardContent>
             </Card>
 
             {/* Student ID Card (for students) */}
-            {userProfile?.user_type === 'student' && (
+            {userProfile?.user_type === "student" && (
               <Card>
                 <CardHeader className="flex flex-row items-center space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
                     <GraduationCap className="w-4 h-4" />
-                    Student ID
+                    Matrícula
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-lg font-bold">{userProfile?.student_id || 'Not provided'}</div>
+                  <div className="text-lg font-bold">
+                    {userProfile?.student_id || "Não informado"}
+                  </div>
                   <p className="text-xs text-muted-foreground">
-                    University registration
+                    Registro universitário
                   </p>
                 </CardContent>
               </Card>
@@ -207,24 +214,26 @@ export default async function DashboardPage() {
               <CardHeader className="flex flex-row items-center space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <Calendar className="w-4 h-4" />
-                  Lattes CV
+                  Currículo Lattes
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {userProfile?.lattes_url ? (
-                  <a 
-                    href={userProfile.lattes_url} 
-                    target="_blank" 
+                  <a
+                    href={userProfile.lattes_url}
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:underline text-sm"
                   >
-                    View CV
+                    Ver Currículo
                   </a>
                 ) : (
-                  <span className="text-sm text-muted-foreground">Not provided</span>
+                  <span className="text-sm text-muted-foreground">
+                    Não informado
+                  </span>
                 )}
                 <p className="text-xs text-muted-foreground mt-1">
-                  Academic CV
+                  Currículo acadêmico
                 </p>
               </CardContent>
             </Card>
@@ -234,15 +243,17 @@ export default async function DashboardPage() {
               <CardHeader className="flex flex-row items-center space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <Shield className="w-4 h-4" />
-                  Profile Status
+                  Status do Perfil
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className={`text-lg font-bold ${userProfile?.is_profile_complete ? 'text-green-600' : 'text-orange-600'}`}>
-                  {userProfile?.is_profile_complete ? 'Complete' : 'Incomplete'}
+                <div
+                  className={`text-lg font-bold ${userProfile?.is_profile_complete ? "text-green-600" : "text-orange-600"}`}
+                >
+                  {userProfile?.is_profile_complete ? "Completo" : "Incompleto"}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Profile completion status
+                  Status de conclusão do perfil
                 </p>
               </CardContent>
             </Card>
@@ -250,38 +261,44 @@ export default async function DashboardPage() {
         </div>
 
         {/* Role-specific content */}
-        {role === 'professor' ? (
+        {role === "professor" ? (
           <div className="space-y-6">
-            <h2 className="text-2xl font-semibold tracking-tight">Professor Dashboard</h2>
-            
+            <h2 className="text-2xl font-semibold tracking-tight">
+              Dashboard do Professor
+            </h2>
+
             {/* Research Opportunities Summary */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <BookOpen className="w-5 h-5" />
-                    Research Opportunities
+                    Oportunidades de Pesquisa
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalResearch}</div>
+                  <div className="text-2xl font-bold">
+                    {stats.totalResearch}
+                  </div>
                   <p className="text-sm text-muted-foreground mt-2">
-                    Active research projects you're supervising
+                    Projetos de pesquisa ativos que você está supervisionando
                   </p>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <FileText className="w-5 h-5" />
-                    Applications Received
+                    Candidaturas Recebidas
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalApplications}</div>
+                  <div className="text-2xl font-bold">
+                    {stats.totalApplications}
+                  </div>
                   <p className="text-sm text-muted-foreground mt-2">
-                    Student applications to review
+                    Candidaturas de estudantes para revisar
                   </p>
                 </CardContent>
               </Card>
@@ -290,13 +307,13 @@ export default async function DashboardPage() {
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Users className="w-5 h-5" />
-                    Pending Reviews
+                    Revisões Pendentes
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{stats.pendingApplications}</div>
                   <p className="text-sm text-muted-foreground mt-2">
-                    Applications awaiting your decision
+                    Candidaturas aguardando sua decisão
                   </p>
                 </CardContent>
               </Card>
@@ -308,10 +325,15 @@ export default async function DashboardPage() {
               userId={userId} 
             />
 
+            {/* Post Management */}
+            <PostManager userId={userId} />
+
             {/* Recent Applications */}
             {applications && applications.length > 0 && (
               <div>
-                <h3 className="text-xl font-semibold mb-4">Recent Applications</h3>
+                <h3 className="text-xl font-semibold mb-4">
+                  Recent Applications
+                </h3>
                 <div className="grid gap-4">
                   {applications.slice(0, 5).map((application) => (
                     <Card key={application.id}>
@@ -320,20 +342,28 @@ export default async function DashboardPage() {
                           {application.research_opportunities?.title}
                         </CardTitle>
                         <CardDescription>
-                          Application from {application.user_profiles?.full_name || application.user_profiles?.email}
+                          Application from{" "}
+                          {application.user_profiles?.full_name ||
+                            application.user_profiles?.email}
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
                         <div className="flex justify-between items-center">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            application.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                            application.status === 'accepted' ? 'bg-green-100 text-green-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              application.status === "pending"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : application.status === "accepted"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-red-100 text-red-800"
+                            }`}
+                          >
                             {application.status?.toUpperCase()}
                           </span>
                           <span className="text-xs text-muted-foreground">
-                            {new Date(application.created_at).toLocaleDateString()}
+                            {new Date(
+                              application.created_at
+                            ).toLocaleDateString()}
                           </span>
                         </div>
                       </CardContent>
@@ -345,42 +375,54 @@ export default async function DashboardPage() {
           </div>
         ) : (
           <div className="space-y-6">
-            <h2 className="text-2xl font-semibold tracking-tight">Student Dashboard</h2>
-            
+            <h2 className="text-2xl font-semibold tracking-tight">
+              Dashboard do Estudante
+            </h2>
+
             {/* Student Stats */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">My Applications</CardTitle>
+                  <CardTitle className="text-lg">Minhas Candidaturas</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalApplications}</div>
+                  <div className="text-2xl font-bold">
+                    {stats.totalApplications}
+                  </div>
                   <p className="text-sm text-muted-foreground mt-2">
-                    Research applications submitted
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Pending Applications</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.pendingApplications}</div>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Awaiting professor review
+                    Candidaturas de pesquisa enviadas
                   </p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Accepted Applications</CardTitle>
+                  <CardTitle className="text-lg">
+                    Candidaturas Pendentes
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-green-600">{stats.acceptedApplications}</div>
+                  <div className="text-2xl font-bold">
+                    {stats.pendingApplications}
+                  </div>
                   <p className="text-sm text-muted-foreground mt-2">
-                    Successful applications
+                    Aguardando revisão do professor
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">
+                    Candidaturas Aceitas
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">
+                    {stats.acceptedApplications}
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Candidaturas aprovadas
                   </p>
                 </CardContent>
               </Card>
@@ -403,15 +445,22 @@ export default async function DashboardPage() {
                       </CardHeader>
                       <CardContent>
                         <div className="flex justify-between items-center">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            application.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                            application.status === 'accepted' ? 'bg-green-100 text-green-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              application.status === "pending"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : application.status === "accepted"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-red-100 text-red-800"
+                            }`}
+                          >
                             {application.status?.toUpperCase()}
                           </span>
                           <span className="text-xs text-muted-foreground">
-                            Applied: {new Date(application.created_at).toLocaleDateString()}
+                            Applied:{" "}
+                            {new Date(
+                              application.created_at
+                            ).toLocaleDateString()}
                           </span>
                         </div>
                       </CardContent>
@@ -422,111 +471,6 @@ export default async function DashboardPage() {
             )}
           </div>
         )}
-        
-        {/* Debug Section */}
-        <div>
-          <h2 className="font-bold text-2xl mb-4">Debug Information</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">User Profile Data</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <details className="text-xs">
-                  <summary className="cursor-pointer text-blue-600 hover:underline">
-                    Show profile data
-                  </summary>
-                  <pre className="mt-2 text-xs font-mono p-2 bg-gray-100 dark:bg-gray-800 rounded max-h-32 overflow-auto">
-                    {JSON.stringify(userProfile, null, 2)}
-                  </pre>
-                </details>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Research Data</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <details className="text-xs">
-                  <summary className="cursor-pointer text-blue-600 hover:underline">
-                    Show research data
-                  </summary>
-                  <pre className="mt-2 text-xs font-mono p-2 bg-gray-100 dark:bg-gray-800 rounded max-h-32 overflow-auto">
-                    {JSON.stringify(researchOpportunities, null, 2)}
-                  </pre>
-                </details>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Applications Data</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <details className="text-xs">
-                  <summary className="cursor-pointer text-blue-600 hover:underline">
-                    Show applications data
-                  </summary>
-                  <pre className="mt-2 text-xs font-mono p-2 bg-gray-100 dark:bg-gray-800 rounded max-h-32 overflow-auto">
-                    {JSON.stringify(applications, null, 2)}
-                  </pre>
-                </details>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Debug data from tables */}
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">All Profiles (Sample)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <details className="text-xs">
-                  <summary className="cursor-pointer text-blue-600 hover:underline">
-                    Show all profiles sample
-                  </summary>
-                  <pre className="mt-2 text-xs font-mono p-2 bg-gray-100 dark:bg-gray-800 rounded max-h-32 overflow-auto">
-                    {JSON.stringify(debugData.profiles, null, 2)}
-                  </pre>
-                </details>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">All Research (Sample)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <details className="text-xs">
-                  <summary className="cursor-pointer text-blue-600 hover:underline">
-                    Show all research sample
-                  </summary>
-                  <pre className="mt-2 text-xs font-mono p-2 bg-gray-100 dark:bg-gray-800 rounded max-h-32 overflow-auto">
-                    {JSON.stringify(debugData.research, null, 2)}
-                  </pre>
-                </details>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">All Applications (Sample)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <details className="text-xs">
-                  <summary className="cursor-pointer text-blue-600 hover:underline">
-                    Show all applications sample
-                  </summary>
-                  <pre className="mt-2 text-xs font-mono p-2 bg-gray-100 dark:bg-gray-800 rounded max-h-32 overflow-auto">
-                    {JSON.stringify(debugData.applications, null, 2)}
-                  </pre>
-                </details>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
       </div>
     </div>
   );
