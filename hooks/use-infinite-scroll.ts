@@ -7,8 +7,6 @@ export type ResearchOpportunity = {
   description: string;
   supervisor_id: string | null;
   research_area: string;
-  department: string;
-  faculty: string;
   monthly_value: string;
   deadline: string;
   start_date: string;

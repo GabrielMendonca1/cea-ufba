@@ -89,7 +89,7 @@ export function ResearchDetailsSheet({
               </h4>
               <p className="text-sm text-muted-foreground">Orientador(a)</p>
               <p className="text-sm font-medium text-blue-600">
-                {research.department}
+                {research.research_area}
               </p>
             </div>
           </div>
