@@ -164,7 +164,7 @@ export default function Signup() {
             </CardHeader>
 
             <CardContent>
-              <form className="space-y-6" action={signUpAction}>
+              <form className="space-y-6" action={handleFormSubmit}>
                 {/* User Type Selection */}
                 <div className="space-y-3">
                   <Label className="text-base font-semibold flex items-center gap-2">
