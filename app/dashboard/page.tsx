@@ -71,37 +71,12 @@ export default async function DashboardPage() {
   return (
     <div className="container mx-auto py-6 px-4 flex-1">
       <div className="flex flex-col space-y-6">
-        {/* Protection notice */}
-        <div className="w-full">
-          <div className="bg-accent text-sm p-3 px-5 rounded-md text-foreground flex gap-3 items-center">
-            <InfoIcon size="16" strokeWidth={2} />
-            This is a protected page that you can only see as an authenticated user
-          </div>
-        </div>
 
-        {/* Debug Info at Top */}
-        <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
-          <h3 className="font-bold text-lg mb-2">Debug Info</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div>
-              <strong>User Email:</strong> {userEmail}<br/>
-              <strong>User ID:</strong> {userId}<br/>
-              <strong>User Type:</strong> {userType}<br/>
-              <strong>Role:</strong> {role}
-            </div>
-            <div>
-              <strong>Profile Found:</strong> {userProfile ? 'Yes' : 'No'}<br/>
-              <strong>Research Count:</strong> {stats.totalResearch}<br/>
-              <strong>Applications Count:</strong> {stats.totalApplications}<br/>
-              <strong>Pending Applications:</strong> {stats.pendingApplications}
-            </div>
-          </div>
-        </div>
 
         {/* Header */}
         <div className="flex items-center justify-between space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">
-            Dashboard ({role === 'student' ? 'Aluno' : role === 'professor' ? 'Professor' : 'Usuario'})
+            Olá, {userProfile?.full_name || 'Usuário'}!
           </h1>
         </div>
         

@@ -17,8 +17,9 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResearchOpportunity, CreateResearchOpportunityData } from "@/lib/queries";
-import { Plus, Edit2, Loader2, Calendar, Users, DollarSign } from "lucide-react";
+import { Plus, Edit2, Loader2, Calendar, Users, DollarSign, FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { ResearchApplicationsModal } from "./research-applications-modal";
 
 interface ResearchOpportunityManagerProps {
   researchOpportunities: ResearchOpportunity[] | null;
@@ -57,6 +58,8 @@ export function ResearchOpportunityManager({ researchOpportunities, userId }: Re
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [editingOpportunity, setEditingOpportunity] = useState<ResearchOpportunity | null>(null);
+  const [isApplicationsModalOpen, setIsApplicationsModalOpen] = useState(false);
+  const [selectedResearch, setSelectedResearch] = useState<ResearchOpportunity | null>(null);
   const [formData, setFormData] = useState<CreateResearchOpportunityData>({
     title: "",
     description: "",
@@ -125,6 +128,11 @@ export function ResearchOpportunityManager({ researchOpportunities, userId }: Re
     setIsEditOpen(true);
   };
 
+  const handleViewApplications = (opportunity: ResearchOpportunity) => {
+    setSelectedResearch(opportunity);
+    setIsApplicationsModalOpen(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -191,15 +199,26 @@ export function ResearchOpportunityManager({ researchOpportunities, userId }: Re
                     <CardTitle className="text-lg">{opportunity.title}</CardTitle>
                     <CardDescription>{opportunity.research_area}</CardDescription>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(opportunity)}
-                    className="gap-2"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                    Edit
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleViewApplications(opportunity)}
+                      className="gap-2"
+                    >
+                      <FileText className="w-4 h-4" />
+                      Ver Inscrições
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(opportunity)}
+                      className="gap-2"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                      Edit
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -531,6 +550,19 @@ export function ResearchOpportunityManager({ researchOpportunities, userId }: Re
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Applications Modal */}
+      {selectedResearch && (
+        <ResearchApplicationsModal
+          isOpen={isApplicationsModalOpen}
+          onClose={() => {
+            setIsApplicationsModalOpen(false);
+            setSelectedResearch(null);
+          }}
+          researchTitle={selectedResearch.title}
+          researchId={selectedResearch.id}
+        />
+      )}
     </div>
   );
 } 

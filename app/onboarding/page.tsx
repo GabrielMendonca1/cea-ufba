@@ -4,19 +4,17 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentUserProfile, completeOnboarding, UserProfile } from "@/utils/supabase/user-profile";
 import ProfileOnboarding from "@/components/onboarding/profile-onboarding";
-import { createClient } from "@/utils/supabase/client";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function OnboardingPage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     const checkProfile = async () => {
       try {
-        const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        
         if (!user) {
           router.push('/sign-in');
           return;
@@ -45,7 +43,7 @@ export default function OnboardingPage() {
     };
 
     checkProfile();
-  }, [router]);
+  }, [user, router]);
 
   const handleOnboardingComplete = async () => {
     try {

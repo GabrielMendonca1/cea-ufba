@@ -279,6 +279,11 @@ export const signInAction = async (formData: FormData) => {
       );
     }
 
+    console.log('✅ User signed in successfully:', {
+      userId: data.user.id,
+      email: data.user.email
+    });
+
     // Check if user needs onboarding
     try {
       const { data: profile, error: profileError } = await supabase
@@ -293,6 +298,7 @@ export const signInAction = async (formData: FormData) => {
       }
 
       if (profile && !profile.has_completed_onboarding) {
+        console.log('🔄 Redirecting to onboarding');
         return redirect("/onboarding");
       }
 
@@ -301,6 +307,7 @@ export const signInAction = async (formData: FormData) => {
       // Continue to protected route
     }
 
+    console.log('🔄 Redirecting to dashboard');
     return redirect("/dashboard");
 
   } catch (error) {

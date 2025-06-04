@@ -21,10 +21,13 @@
 import React from "react";
 import Link from "next/link";
 import { RoleProvider } from "@/contexts/role-context";
+import { AuthProvider } from "@/contexts/auth-context";
 import HeaderAuthClient from "@/components/auth/header-auth-client";
 import Footer from "@/components/layout/footer";
 import AuthWrapper from "@/components/auth/auth-wrapper";
 import ErrorBoundary from "@/components/layout/error-boundary";
+import LoginNotification from "@/components/ui/login-notification";
+import DashboardRefresher from "@/components/auth/dashboard-refresher";
 import { Input } from "@/components/ui/input";
 
 /**
@@ -77,7 +80,7 @@ function HeaderContent() {
       {/* Sub header with navigation links */}
       <nav className="w-full flex justify-center border-b border-b-foreground/10 h-12 fixed top-16 left-0 right-0 bg-background z-40">
         <div className="w-full max-w-5xl flex justify-center gap-5 items-center font-semibold text-sm">
-          <Link href="/">Início</Link>
+          <Link href="/">Divulgação</Link>
           <Link href="/pesquisas">Pesquisas</Link>
           <Link href="/docentes">Docentes</Link>
         </div>
@@ -101,24 +104,32 @@ export default function MainLayoutClientWrapper({
 }) {
   return (
     <ErrorBoundary>
-      <RoleProvider>
-        <AuthWrapper>
-          <div className="min-h-screen flex flex-col items-center">
-            {/* Fixed header navigation */}
-            <HeaderContent />
+      <AuthProvider>
+        <RoleProvider>
+          <AuthWrapper>
+            <div className="min-h-screen flex flex-col items-center">
+              {/* Fixed header navigation */}
+              <HeaderContent />
 
-            {/* Main content area with top padding for fixed headers */}
-            <div className="flex-1 w-full flex flex-col items-center pt-28">
-              <div className="flex flex-col gap-20 max-w-5xl p-5 w-full">
-                {children}
+              {/* Login/logout notification */}
+              <LoginNotification />
+
+              {/* Dashboard auto-refresher */}
+              <DashboardRefresher />
+
+              {/* Main content area with top padding for fixed headers */}
+              <div className="flex-1 w-full flex flex-col items-center pt-28">
+                <div className="flex flex-col gap-20 max-w-5xl p-5 w-full">
+                  {children}
+                </div>
               </div>
-            </div>
 
-            {/* Footer component */}
-            <Footer />
-          </div>
-        </AuthWrapper>
-      </RoleProvider>
+              {/* Footer component */}
+              <Footer />
+            </div>
+          </AuthWrapper>
+        </RoleProvider>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }

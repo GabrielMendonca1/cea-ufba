@@ -1,52 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/utils/supabase/client"; // Import the client version
 import { hasEnvVars } from "@/utils/supabase/check-env-vars";
-import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function HeaderAuthClient() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
-  
-  useEffect(() => {
-    const supabase = createClient();
-    
-    // Get the user on initial load
-    const getUser = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        setUser(user);
-      } catch (error) {
-        console.error('Error fetching user:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    getUser();
-    
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user || null);
-      }
-    );
-    
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+  const { user, loading, signOut } = useAuth();
   
   const handleSignOut = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.refresh();
-    router.push("/sign-in");
+    await signOut();
   };
 
   if (!hasEnvVars) {
