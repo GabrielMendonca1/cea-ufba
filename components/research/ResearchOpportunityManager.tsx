@@ -25,18 +25,6 @@ interface ResearchOpportunityManagerProps {
   userId: string;
 }
 
-// Common values for dropdowns
-const FACULTIES = [
-  "Engineering",
-  "Sciences",
-  "Medicine",
-  "Business",
-  "Education",
-  "Arts and Humanities",
-  "Social Sciences",
-  "Law",
-  "Other"
-];
 
 const SCHOLARSHIP_TYPES = [
   "PIBIC",
@@ -72,20 +60,18 @@ export function ResearchOpportunityManager({ researchOpportunities, userId }: Re
   const [formData, setFormData] = useState<CreateResearchOpportunityData>({
     title: "",
     description: "",
-    department: "",
-    faculty: "",
     research_area: "",
     scholarship_type: "",
     duration: "",
     monthly_value: "",
-    requirements: "",
+    requirements: [],
     start_date: "",
     deadline: "",
     vacancies: 1,
     workload: "",
-    objectives: "",
+    objectives: [],
     methodology: "",
-    expected_results: "",
+    expected_results: [],
     contact_email: "",
   });
 
@@ -95,20 +81,18 @@ export function ResearchOpportunityManager({ researchOpportunities, userId }: Re
     setFormData({
       title: "",
       description: "",
-      department: "",
-      faculty: "",
       research_area: "",
       scholarship_type: "",
       duration: "",
       monthly_value: "",
-      requirements: "",
+      requirements: [],
       start_date: "",
       deadline: "",
       vacancies: 1,
       workload: "",
-      objectives: "",
+      objectives: [],
       methodology: "",
-      expected_results: "",
+      expected_results: [],
       contact_email: "",
     });
   };
@@ -123,20 +107,18 @@ export function ResearchOpportunityManager({ researchOpportunities, userId }: Re
     setFormData({
       title: opportunity.title,
       description: opportunity.description,
-      department: opportunity.department,
-      faculty: opportunity.faculty,
       research_area: opportunity.research_area,
       scholarship_type: opportunity.scholarship_type,
       duration: opportunity.duration,
       monthly_value: opportunity.monthly_value,
-      requirements: opportunity.requirements || "",
+      requirements: opportunity.requirements || [],
       start_date: opportunity.start_date.split('T')[0], // Format for date input
       deadline: opportunity.deadline.split('T')[0], // Format for date input
       vacancies: opportunity.vacancies,
       workload: opportunity.workload,
-      objectives: opportunity.objectives || "",
+      objectives: opportunity.objectives || [],
       methodology: opportunity.methodology || "",
-      expected_results: opportunity.expected_results || "",
+      expected_results: opportunity.expected_results || [],
       contact_email: opportunity.contact_email,
     });
     setEditingOpportunity(opportunity);
@@ -180,7 +162,7 @@ export function ResearchOpportunityManager({ researchOpportunities, userId }: Re
     }
   };
 
-  const handleInputChange = (field: keyof CreateResearchOpportunityData, value: string | number) => {
+  const handleInputChange = (field: keyof CreateResearchOpportunityData, value: string | number | string[]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,
@@ -207,9 +189,7 @@ export function ResearchOpportunityManager({ researchOpportunities, userId }: Re
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="text-lg">{opportunity.title}</CardTitle>
-                    <CardDescription>
-                      {opportunity.department} • {opportunity.faculty}
-                    </CardDescription>
+                    <CardDescription>{opportunity.research_area}</CardDescription>
                   </div>
                   <Button
                     variant="outline"
@@ -295,36 +275,7 @@ export function ResearchOpportunityManager({ researchOpportunities, userId }: Re
                   />
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <Label htmlFor="department" className="text-sm font-medium">Department *</Label>
-                    <Input
-                      id="department"
-                      value={formData.department}
-                      onChange={(e) => handleInputChange("department", e.target.value)}
-                      placeholder="Department name"
-                      required
-                      className="h-11"
-                    />
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <Label htmlFor="faculty" className="text-sm font-medium">Faculty *</Label>
-                    <Select
-                      value={formData.faculty}
-                      onChange={(e) => handleInputChange("faculty", e.target.value)}
-                      required
-                      className="h-11"
-                    >
-                      <option value="">Select faculty</option>
-                      {FACULTIES.map((faculty) => (
-                        <option key={faculty} value={faculty}>
-                          {faculty}
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
-                </div>
+
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-3">
@@ -506,8 +457,8 @@ export function ResearchOpportunityManager({ researchOpportunities, userId }: Re
                   <Label htmlFor="requirements" className="text-sm font-medium">Requirements</Label>
                   <Textarea
                     id="requirements"
-                    value={formData.requirements || ""}
-                    onChange={(e) => handleInputChange("requirements", e.target.value)}
+                    value={(formData.requirements || []).join('\n')}
+                    onChange={(e) => handleInputChange("requirements", e.target.value.split('\n'))}
                     placeholder="List the requirements for applicants..."
                     rows={3}
                     className="resize-none"
@@ -518,8 +469,8 @@ export function ResearchOpportunityManager({ researchOpportunities, userId }: Re
                   <Label htmlFor="objectives" className="text-sm font-medium">Objectives</Label>
                   <Textarea
                     id="objectives"
-                    value={formData.objectives || ""}
-                    onChange={(e) => handleInputChange("objectives", e.target.value)}
+                    value={(formData.objectives || []).join('\n')}
+                    onChange={(e) => handleInputChange("objectives", e.target.value.split('\n'))}
                     placeholder="Research objectives and goals..."
                     rows={3}
                     className="resize-none"
@@ -542,8 +493,8 @@ export function ResearchOpportunityManager({ researchOpportunities, userId }: Re
                   <Label htmlFor="expected_results" className="text-sm font-medium">Expected Results</Label>
                   <Textarea
                     id="expected_results"
-                    value={formData.expected_results || ""}
-                    onChange={(e) => handleInputChange("expected_results", e.target.value)}
+                    value={(formData.expected_results || []).join('\n')}
+                    onChange={(e) => handleInputChange("expected_results", e.target.value.split('\n'))}
                     placeholder="Expected outcomes and deliverables..."
                     rows={3}
                     className="resize-none"

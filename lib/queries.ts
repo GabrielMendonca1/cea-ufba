@@ -24,20 +24,18 @@ export interface ResearchOpportunity {
   title: string;
   description: string;
   supervisor_id: string;
-  department: string;
-  faculty: string;
   research_area: string;
   scholarship_type: string;
   duration: string;
   monthly_value: string;
-  requirements: string | null;
+  requirements: string[];
   start_date: string;
   deadline: string;
   vacancies: number;
   workload: string;
-  objectives: string | null;
-  methodology: string | null;
-  expected_results: string | null;
+  objectives: string[];
+  methodology: string;
+  expected_results: string[];
   contact_email: string;
   is_active: boolean;
   created_at: string;
@@ -48,7 +46,7 @@ export interface Application {
   id: string;
   student_id: string;
   research_opportunity_id: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'accepted' | 'rejected' | 'withdrawn';
   cover_letter: string;
   created_at: string;
   updated_at: string;
@@ -64,7 +62,7 @@ export interface DashboardData {
     totalResearch: number;
     totalApplications: number;
     pendingApplications: number;
-    approvedApplications: number;
+    acceptedApplications: number;
   };
 }
 
@@ -82,20 +80,18 @@ export interface UpdateUserProfileData {
 export interface CreateResearchOpportunityData {
   title: string;
   description: string;
-  department: string;
-  faculty: string;
   research_area: string;
   scholarship_type: string;
   duration: string;
   monthly_value: string;
-  requirements?: string;
+  requirements?: string[];
   start_date: string;
   deadline: string;
   vacancies: number;
   workload: string;
-  objectives?: string;
+  objectives?: string[];
   methodology?: string;
-  expected_results?: string;
+  expected_results?: string[];
   contact_email: string;
 }
 
@@ -242,7 +238,7 @@ export async function getProfessorApplications(opportunityIds: string[]): Promis
     .from('applications')
     .select(`
       *,
-      research_opportunities!inner(title, department, faculty),
+      research_opportunities!inner(title),
       user_profiles(full_name, email)
     `)
     .in('research_opportunity_id', opportunityIds)
@@ -269,7 +265,7 @@ export async function getStudentApplications(studentId: string): Promise<Applica
     .from('applications')
     .select(`
       *,
-      research_opportunities(title, supervisor_id, department, faculty)
+      research_opportunities(title, supervisor_id)
     `)
     .eq('student_id', studentId)
     .order('created_at', { ascending: false });
@@ -336,7 +332,7 @@ export async function getDashboardData(user: User): Promise<DashboardData> {
       totalResearch: researchOpportunities.length,
       totalApplications: applications.length,
       pendingApplications: applications.filter(app => app.status === 'pending').length,
-      approvedApplications: applications.filter(app => app.status === 'approved').length,
+      acceptedApplications: applications.filter(app => app.status === 'accepted').length,
     };
 
     console.log("✅ [QUERIES] Professor dashboard data compiled:", stats);
@@ -359,7 +355,7 @@ export async function getDashboardData(user: User): Promise<DashboardData> {
       totalResearch: 0,
       totalApplications: applications.length,
       pendingApplications: applications.filter(app => app.status === 'pending').length,
-      approvedApplications: applications.filter(app => app.status === 'approved').length,
+      acceptedApplications: applications.filter(app => app.status === 'accepted').length,
     };
 
     console.log("✅ [QUERIES] Student dashboard data compiled:", stats);

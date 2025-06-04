@@ -59,11 +59,9 @@ export type Database = {
           contact_email: string
           created_at: string
           deadline: string
-          department: string
           description: string
           duration: string
           expected_results: string[]
-          faculty: string
           id: string
           is_active: boolean | null
           methodology: string
@@ -83,11 +81,9 @@ export type Database = {
           contact_email: string
           created_at?: string
           deadline: string
-          department: string
           description: string
           duration: string
           expected_results: string[]
-          faculty: string
           id?: string
           is_active?: boolean | null
           methodology: string
@@ -107,11 +103,9 @@ export type Database = {
           contact_email?: string
           created_at?: string
           deadline?: string
-          department?: string
           description?: string
           duration?: string
           expected_results?: string[]
-          faculty?: string
           id?: string
           is_active?: boolean | null
           methodology?: string
@@ -202,7 +196,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      user_type: "student" | "teacher"
+      user_type: "student" | "professor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -318,7 +312,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      user_type: ["student", "teacher"],
+      user_type: ["student", "professor"],
     },
   },
 } as const

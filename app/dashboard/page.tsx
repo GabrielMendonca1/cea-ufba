@@ -352,7 +352,7 @@ export default async function DashboardPage() {
                         <div className="flex justify-between items-center">
                           <span className={`px-2 py-1 rounded text-xs font-medium ${
                             application.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                            application.status === 'approved' ? 'bg-green-100 text-green-800' :
+                            application.status === 'accepted' ? 'bg-green-100 text-green-800' :
                             'bg-red-100 text-red-800'
                           }`}>
                             {application.status?.toUpperCase()}
@@ -400,10 +400,10 @@ export default async function DashboardPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Approved Applications</CardTitle>
+                  <CardTitle className="text-lg">Accepted Applications</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-green-600">{stats.approvedApplications}</div>
+                  <div className="text-2xl font-bold text-green-600">{stats.acceptedApplications}</div>
                   <p className="text-sm text-muted-foreground mt-2">
                     Successful applications
                   </p>
@@ -423,14 +423,14 @@ export default async function DashboardPage() {
                           {application.research_opportunities?.title}
                         </CardTitle>
                         <CardDescription>
-                          {application.research_opportunities?.department}
+                          {application.research_opportunities?.research_area}
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
                         <div className="flex justify-between items-center">
                           <span className={`px-2 py-1 rounded text-xs font-medium ${
                             application.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                            application.status === 'approved' ? 'bg-green-100 text-green-800' :
+                            application.status === 'accepted' ? 'bg-green-100 text-green-800' :
                             'bg-red-100 text-red-800'
                           }`}>
                             {application.status?.toUpperCase()}

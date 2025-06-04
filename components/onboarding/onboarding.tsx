@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 interface OnboardingProps {
-  userType: 'student' | 'teacher';
+  userType: 'student' | 'professor';
   userName?: string;
   onComplete: () => void;
 }
@@ -58,7 +58,7 @@ const studentSteps = [
   }
 ];
 
-const teacherSteps = [
+const professorSteps = [
   {
     id: 1,
     title: "Publique suas Oportunidades",
@@ -97,7 +97,7 @@ export default function Onboarding({ userType, userName, onComplete }: Onboardin
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   
-  const steps = userType === 'student' ? studentSteps : teacherSteps;
+  const steps = userType === 'student' ? studentSteps : professorSteps;
   const isStudent = userType === 'student';
   
   const handleStepComplete = (stepId: number) => {

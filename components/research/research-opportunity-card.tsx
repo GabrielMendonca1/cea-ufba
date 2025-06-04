@@ -103,7 +103,7 @@ export function ResearchOpportunityCard({
                   Prof. Dr. [Nome do Professor]
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {opportunity.department}
+                  {opportunity.research_area}
                 </p>
               </div>
             </div>
