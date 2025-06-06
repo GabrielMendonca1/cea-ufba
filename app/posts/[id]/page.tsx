@@ -37,7 +37,12 @@ async function getPost(id: string) {
   }
 }
 
-export default async function PostPage({ params }: { params: { id: string } }) {
+type PageProps = {
+  params: { id: string };
+  searchParams?: { [key: string]: string | string[] | undefined };
+};
+
+export default async function PostPage({ params }: PageProps) {
   const post = await getPost(params.id)
   const author = post.user_profiles
 
