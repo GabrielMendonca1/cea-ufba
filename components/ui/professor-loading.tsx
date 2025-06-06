@@ -3,16 +3,19 @@
 import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { GraduationCap, Loader2, CheckCircle } from "lucide-react";
+import { GraduationCap, Loader2, CheckCircle, X } from "lucide-react";
+import { Button } from "./button";
 
 interface ProfessorLoadingProps {
   isOpen: boolean;
   currentStep: string;
+  onClose: () => void;
 }
 
 export function ProfessorLoadingIndicator({ 
   isOpen, 
   currentStep,
+  onClose,
 }: ProfessorLoadingProps) {
   const [progress, setProgress] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
@@ -54,12 +57,22 @@ export function ProfessorLoadingIndicator({
       className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
         isVisible ? 'opacity-100' : 'opacity-0'
       }`}
+      onClick={onClose}
     >
-      <Card 
-        className={`w-full max-w-md border-2 border-blue-200 dark:border-blue-800 shadow-2xl transform transition-all duration-300 ${
+      <Card
+        onClick={(e) => e.stopPropagation()}
+        className={`relative w-full max-w-md border-2 border-blue-200 dark:border-blue-800 shadow-2xl transform transition-all duration-300 ${
           isVisible ? 'scale-100' : 'scale-95'
         }`}
       >
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-4 right-4 rounded-full"
+          onClick={onClose}
+        >
+          <X className="w-4 h-4" />
+        </Button>
         <CardHeader className="text-center">
           <div className="flex items-center justify-center gap-3 mb-2">
             <div className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900">
