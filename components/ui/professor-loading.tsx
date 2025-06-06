@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { GraduationCap, Loader2, CheckCircle } from "lucide-react";
@@ -17,12 +17,12 @@ export function ProfessorLoadingIndicator({
   const [progress, setProgress] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
 
-  const steps = [
+  const steps = useMemo(() => [
     'Conectando ao sistema UFBA...',
     'Validando credenciais acadêmicas...',
     'Verificando status docente...',
     'Finalizando validação...'
-  ];
+  ], []);
 
   useEffect(() => {
     if (isOpen) {

@@ -22,10 +22,18 @@ import {
 } from "lucide-react";
 import { updateUserProfile } from "@/utils/supabase/user-profile";
 
+interface CurrentProfile {
+  department?: string;
+  research_area?: string;
+  bio?: string;
+  lattes_url?: string;
+  avatar_url?: string;
+}
+
 interface ProfileOnboardingProps {
   userType: 'student' | 'professor';
   userName?: string;
-  currentProfile: Record<string, any>;
+  currentProfile: CurrentProfile;
   onComplete: () => void;
 }
 

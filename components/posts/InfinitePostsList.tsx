@@ -92,25 +92,6 @@ export function InfinitePostsList() {
     return categoryMap[department] || `${department}. Pesquisa. Ciência`
   }
 
-  const getRandomTags = () => {
-    const allTags = [
-      "pesquisa científica",
-      "inovação tecnológica", 
-      "desenvolvimento acadêmico",
-      "metodologia científica",
-      "análise de dados",
-      "publicação científica",
-      "colaboração internacional",
-      "sustentabilidade",
-      "inteligência artificial",
-      "biotecnologia"
-    ]
-    
-    // Return 2-3 random tags
-    const shuffled = allTags.sort(() => 0.5 - Math.random())
-    return shuffled.slice(0, Math.floor(Math.random() * 2) + 2)
-  }
-
   return (
     <div className="space-y-8">
       {posts.map((post) => {
