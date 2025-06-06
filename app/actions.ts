@@ -21,7 +21,7 @@ import { encodedRedirect } from "@/utils/utils";
 import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { upsertUserProfile, UserType } from "@/utils/supabase/user-profile";
+import { UserType } from "@/utils/supabase/user-profile";
 import { 
   validateProfessorWithUFBA, 
   logProfessorRegistration,
@@ -32,7 +32,7 @@ import {
  * Error Message Utility
  * Maps Supabase auth errors to user-friendly Portuguese messages
  */
-function getErrorMessage(error: any): string {
+function getErrorMessage(error: { message?: string }): string {
   if (error?.message) {
     // Map common Supabase auth errors to user-friendly messages
     switch (error.message) {

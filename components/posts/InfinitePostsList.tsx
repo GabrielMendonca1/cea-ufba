@@ -3,9 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Calendar, User, BookOpen, ArrowRight } from "lucide-react"
-import BlockNoteViewer from './BlockNoteViewer'
 import { Button } from '../ui/button'
 
 interface Post {
@@ -25,14 +23,11 @@ interface Post {
   } | null
 }
 
-interface InfinitePostsListProps {}
-
-export function InfinitePostsList({}: InfinitePostsListProps) {
+export function InfinitePostsList() {
   const [posts, setPosts] = useState<Post[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(0)
-  const [expandedPostId, setExpandedPostId] = useState<string | null>(null)
 
   const loadMorePosts = useCallback(async () => {
     if (isLoading || !hasMore) return
@@ -67,7 +62,7 @@ export function InfinitePostsList({}: InfinitePostsListProps) {
 
   useEffect(() => {
     loadMorePosts()
-  }, [])
+  }, [loadMorePosts])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -118,10 +113,9 @@ export function InfinitePostsList({}: InfinitePostsListProps) {
 
   return (
     <div className="space-y-8">
-      {posts.map((post, index) => {
+      {posts.map((post) => {
         const author = post.user_profiles;
         const category = getCategoryFromDepartment(author?.department || null);
-        const tags = getRandomTags()
         
         return (
           <Card key={post.id} className="border-0 transition-all duration-300 bg-white">
@@ -146,7 +140,7 @@ export function InfinitePostsList({}: InfinitePostsListProps) {
 
                 {/* Content Preview */}
                 <div className="text-base text-gray-700 leading-relaxed border-l-2 border-gray-200 pl-4 italic">
-                  Clique em "Ler Mais" para ver o conteúdo completo.
+                  Clique em &quot;Ler Mais&quot; para ver o conteúdo completo.
                 </div>
 
                 <div className="pt-4">

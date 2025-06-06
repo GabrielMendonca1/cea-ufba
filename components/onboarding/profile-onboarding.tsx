@@ -1,14 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   User, 
@@ -16,7 +15,6 @@ import {
   BookOpen, 
   FileText, 
   Link, 
-  Upload,
   ArrowLeft,
   ArrowRight,
   Check,
@@ -27,7 +25,7 @@ import { updateUserProfile } from "@/utils/supabase/user-profile";
 interface ProfileOnboardingProps {
   userType: 'student' | 'professor';
   userName?: string;
-  currentProfile: any;
+  currentProfile: Record<string, any>;
   onComplete: () => void;
 }
 

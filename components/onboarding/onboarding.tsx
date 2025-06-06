@@ -116,7 +116,6 @@ export default function Onboarding({ userType, userName, onComplete }: Onboardin
 
   const currentStepData = steps[currentStep];
   const Icon = currentStepData.icon;
-  const isCompleted = completedSteps.includes(currentStepData.id);
   const isLastStep = currentStep === steps.length - 1;
 
   return (

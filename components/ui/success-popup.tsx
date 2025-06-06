@@ -125,7 +125,7 @@ export function SuccessPopup({
                   <ol className="list-decimal list-inside space-y-1">
                     <li>Abra sua caixa de entrada de email</li>
                     <li>Procure por email do CEA UFBA (verifique spam também)</li>
-                    <li>Clique no link "Confirmar Email"</li>
+                    <li>Clique no link &quot;Confirmar Email&quot;</li>
                     <li>Retorne aqui e faça login normalmente</li>
                   </ol>
                 </div>

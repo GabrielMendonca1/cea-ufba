@@ -28,7 +28,7 @@ interface Post {
     email: string
   } | null
   posts: {
-    content: any // JSONB from BlockNote
+    content: unknown // JSONB from BlockNote
   } | null
 }
 
@@ -50,7 +50,7 @@ export function PostManager({ userId }: PostManagerProps) {
         
         if (data.success) {
           // Assuming the API returns all posts, filter for the current user
-          const userPosts = data.posts.filter((post: any) => post.professor_id === userId)
+          const userPosts = data.posts.filter((post: Post & { professor_id: string }) => post.professor_id === userId)
           setPosts(userPosts)
         } else {
           console.error('Failed to fetch posts:', data.error)

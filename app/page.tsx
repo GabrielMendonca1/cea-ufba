@@ -1,7 +1,5 @@
-import { createClient } from "@/utils/supabase/server";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Calendar, User, ArrowRight, FileText, BookOpen } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { User, FileText, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { InfinitePostsList } from "@/components/posts/InfinitePostsList";
 

@@ -8,13 +8,11 @@ import { GraduationCap, Loader2, CheckCircle } from "lucide-react";
 interface ProfessorLoadingProps {
   isOpen: boolean;
   currentStep: string;
-  onClose: () => void;
 }
 
 export function ProfessorLoadingIndicator({ 
   isOpen, 
   currentStep,
-  onClose
 }: ProfessorLoadingProps) {
   const [progress, setProgress] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
@@ -47,7 +45,7 @@ export function ProfessorLoadingIndicator({
         setProgress(newProgress);
       }
     }
-  }, [currentStep]);
+  }, [currentStep, steps]);
 
   if (!isOpen && !isVisible) return null;
 

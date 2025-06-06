@@ -6,8 +6,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { InfoIcon, User, Mail, Calendar, Shield, Phone, BookOpen, Users, FileText, GraduationCap, Building, MapPin } from "lucide-react";
-import { getDashboardData, getDebugData } from "@/lib/queries";
+import { User, Mail, Calendar, Shield, BookOpen, Users, FileText, GraduationCap, Building, MapPin } from "lucide-react";
+import { getDashboardData } from "@/lib/queries";
 import { EditProfileForm } from "@/components/forms/EditProfileForm";
 import { ResearchOpportunityManager } from "@/components/research/ResearchOpportunityManager";
 import { PostManager } from "@/components/posts/PostManager";
@@ -47,8 +47,6 @@ export default async function DashboardPage() {
   const userEmail = user.email || 'Not provided';
   const userId = user.id;
   const emailConfirmed = user.email_confirmed_at ? new Date(user.email_confirmed_at).toLocaleDateString() : 'Not confirmed';
-  const userPhone = user.phone || 'Not provided';
-  const userRole = user.role || 'authenticated';
   
   // Get the actual user type from user metadata or user object
   const userType = (user.user_metadata?.user_type || user.app_metadata?.user_type || 'student') as string;
@@ -62,9 +60,8 @@ export default async function DashboardPage() {
   });
 
   // Get all dashboard data using our query functions with Promise.all() optimization
-  const [dashboardData, debugData] = await Promise.all([
+  const [dashboardData] = await Promise.all([
     getDashboardData(user),
-    getDebugData()
   ]);
 
   const { userProfile, researchOpportunities, applications, stats } = dashboardData;
@@ -322,7 +319,6 @@ export default async function DashboardPage() {
             {/* Research Opportunity Management */}
             <ResearchOpportunityManager 
               researchOpportunities={researchOpportunities} 
-              userId={userId} 
             />
 
             {/* Post Management */}

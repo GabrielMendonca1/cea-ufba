@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ValidatedInput } from "@/components/forms/form-validation";
 import { SuccessPopup } from "@/components/ui/success-popup";
 import Link from "next/link";
-import { GraduationCap, Mail, Lock, LogIn, Shield, AlertTriangle, RefreshCw } from "lucide-react";
+import { Mail, Lock, LogIn, Shield, AlertTriangle, RefreshCw } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 

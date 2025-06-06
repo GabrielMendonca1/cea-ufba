@@ -1,17 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { hasEnvVars } from "@/utils/supabase/check-env-vars";
 import { useAuth } from "@/contexts/auth-context";
 
 export default function HeaderAuthClient() {
-  const { user, loading, signOut } = useAuth();
-  
-  const handleSignOut = async () => {
-    await signOut();
-  };
+  const { user, loading } = useAuth();
 
   if (!hasEnvVars) {
     return (

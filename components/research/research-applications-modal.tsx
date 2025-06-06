@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
   Dialog, 
   DialogContent, 
@@ -79,14 +79,7 @@ export function ResearchApplicationsModal({
   const researchId = researchOpportunity.id;
   const researchTitle = researchOpportunity.title;
 
-  // Fetch applications when modal opens
-  useEffect(() => {
-    if (isOpen && researchId) {
-      fetchApplications();
-    }
-  }, [isOpen, researchId]);
-
-  const fetchApplications = async () => {
+  const fetchApplications = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(`/api/research/applications?researchId=${researchId}`);
@@ -99,7 +92,14 @@ export function ResearchApplicationsModal({
     } finally {
       setLoading(false);
     }
-  };
+  }, [researchId]);
+
+  // Fetch applications when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchApplications();
+    }
+  }, [isOpen, fetchApplications]);
 
   const handleStatusUpdate = async (applicationId: string, newStatus: 'accepted' | 'rejected') => {
     try {
