@@ -7,12 +7,10 @@ import {
   DialogHeader, 
   DialogTitle 
 } from "@/components/ui/dialog";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
-import { Application, ResearchOpportunity } from "@/lib/queries";
+import { ResearchOpportunity } from "@/lib/queries";
 import { 
   Clock, 
   CheckCircle, 
@@ -22,15 +20,7 @@ import {
   Calendar,
   FileText,
   GraduationCap,
-  Eye,
-  MoreHorizontal
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 interface ResearchApplicationsModalProps {
   isOpen: boolean;
