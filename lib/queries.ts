@@ -223,6 +223,28 @@ export async function updateResearchOpportunity(opportunityId: string, updates: 
 }
 
 /**
+ * Delete a research opportunity
+ */
+export async function deleteResearchOpportunity(opportunityId: string): Promise<boolean> {
+  const supabase = await createClient();
+  
+  console.log("🔍 [QUERIES] Deleting research opportunity:", opportunityId);
+  
+  const { error } = await supabase
+    .from('research_opportunities')
+    .delete()
+    .eq('id', opportunityId);
+
+  if (error) {
+    console.error("❌ [QUERIES] Error deleting research opportunity:", error);
+    return false;
+  }
+
+  console.log("✅ [QUERIES] Research opportunity deleted successfully");
+  return true;
+}
+
+/**
  * Get applications for professor's research opportunities
  */
 export async function getProfessorApplications(opportunityIds: string[]): Promise<Application[]> {

@@ -1,31 +1,34 @@
 "use client"
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { PlusCircle, Calendar, User, BookOpen } from "lucide-react"
-import { CreatePostModal } from '@/components/posts/CreatePostModal'
+import { PlusCircle, Calendar, User, BookOpen, Edit, Trash2, Loader2 } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 interface Post {
   id: string
   title: string
   description: string
   created_at: string
-  updated_at: string
-  professor_id: string
   user_profiles: {
     full_name: string | null
     email: string
-    department: string | null
-    research_area: string | null
-    avatar_url: string | null
   } | null
   posts: {
-    id: string
-    content_markdown: string
-    created_at: string
-    updated_at: string
+    content: any // JSONB from BlockNote
   } | null
 }
 
@@ -36,33 +39,54 @@ interface PostManagerProps {
 export function PostManager({ userId }: PostManagerProps) {
   const [posts, setPosts] = useState<Post[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-
-  const fetchPosts = async () => {
-    try {
-      const response = await fetch('/api/posts')
-      const data = await response.json()
-      
-      if (data.success) {
-        setPosts(data.posts)
-      } else {
-        console.error('Failed to fetch posts:', data.error)
-      }
-    } catch (error) {
-      console.error('Error fetching posts:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchPosts()
-  }, [])
+    const fetchPosts = async () => {
+      setIsLoading(true)
+      try {
+        const response = await fetch('/api/posts') // This should probably be user-specific
+        const data = await response.json()
+        
+        if (data.success) {
+          // Assuming the API returns all posts, filter for the current user
+          const userPosts = data.posts.filter((post: any) => post.professor_id === userId)
+          setPosts(userPosts)
+        } else {
+          console.error('Failed to fetch posts:', data.error)
+        }
+      } catch (error) {
+        console.error('Error fetching posts:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
 
-  const handlePostCreated = () => {
-    fetchPosts() // Refresh the posts list
-    setIsCreateModalOpen(false)
-  }
+    fetchPosts()
+  }, [userId])
+
+  const handleDelete = async (postId: string) => {
+    setIsDeleting(postId);
+    try {
+      const response = await fetch('/api/posts/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postId }),
+      });
+
+      if (response.ok) {
+        setPosts(prev => prev.filter(p => p.id !== postId));
+      } else {
+        const data = await response.json();
+        alert(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      alert('An unexpected error occurred while deleting the post.');
+    } finally {
+      setIsDeleting(null);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -79,9 +103,11 @@ export function PostManager({ userId }: PostManagerProps) {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-xl font-semibold">Posts Científicos</h3>
-        <Button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2">
-          <PlusCircle className="w-4 h-4" />
-          Criar Post
+        <Button asChild className="flex items-center gap-2">
+          <Link href="/dashboard/posts/create">
+            <PlusCircle className="w-4 h-4" />
+            Criar Post
+          </Link>
         </Button>
       </div>
 
@@ -95,9 +121,11 @@ export function PostManager({ userId }: PostManagerProps) {
             <p className="text-gray-500 mb-4">
               Comece compartilhando conhecimento científico com a comunidade acadêmica.
             </p>
-            <Button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2">
-              <PlusCircle className="w-4 h-4" />
-              Criar Primeiro Post
+            <Button asChild className="flex items-center gap-2">
+              <Link href="/dashboard/posts/create">
+                <PlusCircle className="w-4 h-4" />
+                Criar Primeiro Post
+              </Link>
             </Button>
           </CardContent>
         </Card>
@@ -113,17 +141,43 @@ export function PostManager({ userId }: PostManagerProps) {
                       {post.description}
                     </CardDescription>
                   </div>
-                  <Badge variant="secondary" className="ml-2">
-                    Científico
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                     <Badge variant="secondary" className="ml-2">
+                      Científico
+                    </Badge>
+                    <Button variant="ghost" size="icon" asChild>
+                      <Link href={`/dashboard/posts/edit/${post.id}`}>
+                        <Edit className="w-4 h-4" />
+                      </Link>
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" disabled={isDeleting === post.id}>
+                          {isDeleting === post.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete your post.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDelete(post.id)}>
+                            Continue
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {/* Post content preview */}
                   <div className="text-sm text-gray-600 line-clamp-3">
-                    {post.posts?.content_markdown?.substring(0, 200)}
-                    {post.posts?.content_markdown && post.posts.content_markdown.length > 200 && '...'}
+                    Preview do conteúdo não disponível.
                   </div>
                   
                   {/* Author and date info */}
@@ -133,12 +187,6 @@ export function PostManager({ userId }: PostManagerProps) {
                         <User className="w-4 h-4" />
                         <span>{post.user_profiles?.full_name || post.user_profiles?.email}</span>
                       </div>
-                      {post.user_profiles?.department && (
-                        <div className="flex items-center gap-1">
-                          <BookOpen className="w-4 h-4" />
-                          <span>{post.user_profiles.department}</span>
-                        </div>
-                      )}
                     </div>
                     <div className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
@@ -151,12 +199,6 @@ export function PostManager({ userId }: PostManagerProps) {
           ))}
         </div>
       )}
-
-      <CreatePostModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onPostCreated={handlePostCreated}
-      />
     </div>
   )
 } 

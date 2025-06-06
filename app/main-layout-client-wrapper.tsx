@@ -29,6 +29,7 @@ import ErrorBoundary from "@/components/layout/error-boundary";
 import LoginNotification from "@/components/ui/login-notification";
 import DashboardRefresher from "@/components/auth/dashboard-refresher";
 import { Input } from "@/components/ui/input";
+import { usePathname } from 'next/navigation';
 
 /**
  * Header Content Component
@@ -102,6 +103,14 @@ export default function MainLayoutClientWrapper({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const isCreatePostPage = pathname === '/dashboard/posts/create';
+
+  // If it's the create post page, render only the children for a full-screen experience.
+  if (isCreatePostPage) {
+    return <>{children}</>;
+  }
+
   return (
     <ErrorBoundary>
       <AuthProvider>

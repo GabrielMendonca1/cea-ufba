@@ -1,17 +1,14 @@
-import { createClient } from '@/utils/supabase/server'
+import { createServiceRoleClient } from '@/utils/supabase/service'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    
-    // Get query parameters
+    const supabase = createServiceRoleClient()
     const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '10')
+    const page = parseInt(searchParams.get('page') || '1', 10)
+    const limit = parseInt(searchParams.get('limit') || '10', 10)
     const offset = (page - 1) * limit
-    
-    // Fetch scientific outreach posts with pagination
+
     const { data: posts, error } = await supabase
       .from('scientific_outreach')
       .select(`
@@ -21,18 +18,13 @@ export async function GET(request: NextRequest) {
         created_at,
         updated_at,
         professor_id,
-        user_profiles:professor_id (
+        user_profiles (
           full_name,
           email,
-          department,
-          research_area,
-          avatar_url
+          department
         ),
-        posts:post_id (
-          id,
-          content_markdown,
-          created_at,
-          updated_at
+        posts (
+          content
         )
       `)
       .order('created_at', { ascending: false })
@@ -48,10 +40,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      posts: posts || [],
-      page,
-      limit,
-      hasMore: (posts || []).length === limit
+      posts,
     })
 
   } catch (error) {

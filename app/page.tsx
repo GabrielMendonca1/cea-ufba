@@ -5,48 +5,7 @@ import { Calendar, User, ArrowRight, FileText, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { InfinitePostsList } from "@/components/posts/InfinitePostsList";
 
-interface Post {
-  id: string
-  title: string
-  description: string
-  created_at: string
-  updated_at: string
-  professor_id: string
-  user_profiles: any
-  posts: any
-}
-
 export default async function Welcome() {
-  const supabase = await createClient()
-
-  // Fetch initial posts for server-side rendering (first page)
-  const { data: initialPosts } = await supabase
-    .from('scientific_outreach')
-    .select(`
-      id,
-      title,
-      description,
-      created_at,
-      updated_at,
-      professor_id,
-      user_profiles:professor_id (
-        full_name,
-        email,
-        department,
-        research_area
-      ),
-      posts:post_id (
-        id,
-        content_markdown,
-        created_at,
-        updated_at
-      )
-    `)
-    .order('created_at', { ascending: false })
-    .limit(10)
-
-  const posts = initialPosts || []
-
   return (
     <main className="flex-1 flex flex-col gap-8 px-4 max-w-4xl mx-auto">
       {/* Hero Section */}
@@ -112,19 +71,7 @@ export default async function Welcome() {
           <p className="text-muted-foreground">Últimas publicações da comunidade acadêmica</p>
         </div>
 
-        {posts.length > 0 ? (
-          <InfinitePostsList initialPosts={posts} />
-        ) : (
-          <div className="text-center py-12 space-y-4">
-            <div className="w-16 h-16 mx-auto bg-gray-100 rounded-lg flex items-center justify-center">
-              <FileText className="w-8 h-8 text-gray-400" />
-            </div>
-            <div>
-              <h3 className="text-lg font-medium text-gray-900">Nenhum post ainda</h3>
-              <p className="text-muted-foreground">Os professores ainda não publicaram conteúdo científico.</p>
-            </div>
-          </div>
-        )}
+        <InfinitePostsList />
       </section>
     </main>
   );

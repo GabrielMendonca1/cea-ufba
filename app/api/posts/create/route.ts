@@ -30,11 +30,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse request body
-    const { title, description, content_markdown } = await request.json()
+    const { title, description, content_json } = await request.json()
 
-    if (!title || !description || !content_markdown) {
+    if (!title || !description || !content_json) {
       return NextResponse.json(
-        { error: 'Missing required fields: title, description, content_markdown' },
+        { error: 'Missing required fields: title, description, content_json' },
         { status: 400 }
       )
     }
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       .from('posts')
       .insert([
         {
-          content_markdown
+          content: content_json
         }
       ])
       .select()

@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { Application } from "@/lib/queries";
+import { Application, ResearchOpportunity } from "@/lib/queries";
 import { 
   Clock, 
   CheckCircle, 
@@ -35,8 +35,7 @@ import {
 interface ResearchApplicationsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  researchTitle: string;
-  researchId: string;
+  researchOpportunity: ResearchOpportunity;
 }
 
 interface ApplicationWithProfile {
@@ -69,14 +68,16 @@ interface ApplicationWithProfile {
 export function ResearchApplicationsModal({ 
   isOpen, 
   onClose, 
-  researchTitle, 
-  researchId 
+  researchOpportunity 
 }: ResearchApplicationsModalProps) {
   const [applications, setApplications] = useState<ApplicationWithProfile[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState<ApplicationWithProfile | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'inscricoes' | 'deferidos'>('inscricoes');
+
+  const researchId = researchOpportunity.id;
+  const researchTitle = researchOpportunity.title;
 
   // Fetch applications when modal opens
   useEffect(() => {

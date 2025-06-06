@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createResearchOpportunity } from "@/lib/queries";
 import { createClient } from "@/utils/supabase/server";
+import { deleteResearchOpportunity } from "@/lib/queries";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -14,30 +14,29 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { data } = body;
+    const { opportunityId } = body;
 
-    if (!data) {
+    if (!opportunityId) {
       return NextResponse.json(
-        { error: "Data is required" },
+        { error: "Opportunity ID is required" },
         { status: 400 }
       );
     }
 
-    const newOpportunity = await createResearchOpportunity(user.id, data);
+    // The RLS policy will ensure that only the supervisor can delete it.
+    const success = await deleteResearchOpportunity(opportunityId);
 
-    if (!newOpportunity) {
+    if (!success) {
       return NextResponse.json(
-        { error: "Failed to create research opportunity" },
+        { error: "Failed to delete research opportunity or unauthorized" },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      opportunity: newOpportunity,
-    });
+    return NextResponse.json({ success: true });
+    
   } catch (error) {
-    console.error("Error in research create API:", error);
+    console.error("Error in research delete API:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
