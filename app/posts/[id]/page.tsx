@@ -1,45 +1,95 @@
-import { createServiceRoleClient } from '@/utils/supabase/service'
+"use client"
+
+import { useEffect, useState } from 'react'
 import BlockNoteViewer from '@/components/posts/BlockNoteViewer'
 import { notFound } from 'next/navigation'
 import { Calendar, User, BookOpen } from 'lucide-react'
+import { useRealtimeTable } from '@/hooks/useRealtimeTable'
+import { createClient } from '@/utils/supabase/client'
+import { professorLoading } from '@/components/ui/professor-loading'
 
-async function getPost(id: string) {
-  const supabase = createServiceRoleClient()
-  const { data: post, error } = await supabase
-    .from('scientific_outreach')
-    .select(
-      `
-      id,
-      title,
-      description,
-      created_at,
-      user_profiles (
-        full_name,
-        email,
-        department
-      ),
-      posts (
-        content
-      )
-    `
-    )
-    .eq('id', id)
-    .single()
+interface PostData {
+  id: string
+  title: string
+  description: string
+  created_at: string
+  user_profiles: {
+    full_name: string | null
+    email: string
+    department: string | null
+  } | null
+  posts: {
+    content: string
+  } | null
+}
 
-  if (error || !post) {
+export default function PostPage({ params }: { params: { id: string } }) {
+  const { id } = params
+  const [post, setPost] = useState<PostData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isError, setIsError] = useState(false)
+
+  // Use useRealtimeTable to get real-time updates for scientific_outreach
+  const [allOutreach] = useRealtimeTable<PostData>('scientific_outreach', [])
+
+  useEffect(() => {
+    if (allOutreach.length > 0) {
+      const foundPost = allOutreach.find((item) => item.id === id)
+      if (foundPost) {
+        setPost(foundPost)
+        setIsLoading(false)
+      } else {
+        setIsError(true) // Post not found in real-time data
+        setIsLoading(false)
+      }
+    } else if (!isLoading && !post) {
+      // If no real-time data yet, try to fetch once
+      const fetchInitialPost = async () => {
+        const supabase = createClient()
+        const { data, error } = await supabase
+          .from('scientific_outreach')
+          .select(
+            `
+            id,
+            title,
+            description,
+            created_at,
+            user_profiles (
+              full_name,
+              email,
+              department
+            ),
+            posts (
+              content
+            )
+          `
+          )
+          .eq('id', id)
+          .single()
+
+        if (error || !data) {
+          setIsError(true)
+        } else {
+          setPost({
+            ...data,
+            user_profiles: Array.isArray(data.user_profiles) ? data.user_profiles[0] : data.user_profiles,
+            posts: Array.isArray(data.posts) ? data.posts[0] : data.posts,
+          } as PostData)
+        }
+        setIsLoading(false)
+      }
+      fetchInitialPost()
+    }
+  }, [allOutreach, id, isLoading, post])
+
+  if (isLoading) {
+    return professorLoading()
+  }
+
+  if (isError || !post) {
     notFound()
   }
 
-  return {
-    ...post,
-    user_profiles: Array.isArray(post.user_profiles) ? post.user_profiles[0] : post.user_profiles,
-    posts: Array.isArray(post.posts) ? post.posts[0] : post.posts,
-  }
-}
-
-export default async function PostPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const post = await getPost(id)
   const author = post.user_profiles
 
   return (
@@ -76,4 +126,4 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       </div>
     </article>
   )
-} 
+}

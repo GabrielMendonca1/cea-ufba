@@ -3,6 +3,18 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createClient();
+    
+    // Check authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { applicationId, status } = body;
 
@@ -20,7 +32,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = await createClient();
+    // Verify user has permission to update this application
+    const { data: application, error: fetchError } = await supabase
+      .from('applications')
+      .select(`
+        id,
+        student_id,
+        research_opportunities (
+          supervisor_id
+        )
+      `)
+      .eq('id', applicationId)
+      .single();
+
+    if (fetchError || !application) {
+      return NextResponse.json(
+        { error: "Application not found" },
+        { status: 404 }
+      );
+    }
+
+    // Check if user is either the supervisor or the student
+    const isSupervisor = (application.research_opportunities as any)?.supervisor_id === user.id;
+    const isStudent = application.student_id === user.id;
+
+    if (!isSupervisor && !isStudent) {
+      return NextResponse.json(
+        { error: "Forbidden - You can only update applications you supervise or your own applications" },
+        { status: 403 }
+      );
+    }
 
     // Update the application status
     const { data, error } = await supabase

@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { User, Mail, Calendar, Shield, BookOpen, Users, FileText, GraduationCap, Building, MapPin } from "lucide-react";
+import { User, Mail, Calendar, Shield, BookOpen, Users, FileText, GraduationCap, Building, MapPin, Clock } from "lucide-react";
 import { getDashboardData } from "@/lib/queries";
 import { EditProfileForm } from "@/components/forms/EditProfileForm";
 import { ResearchOpportunityManager } from "@/components/research/ResearchOpportunityManager";
@@ -48,23 +48,52 @@ export default async function DashboardPage() {
   const userId = user.id;
   const emailConfirmed = user.email_confirmed_at ? new Date(user.email_confirmed_at).toLocaleDateString() : 'Not confirmed';
   
-  // Get the actual user type from user metadata or user object
-  const userType = (user.user_metadata?.user_type || user.app_metadata?.user_type || 'student') as string;
-  const role = userType; // Use the actual user type instead of hardcoded value
-
-  console.log("🔍 [DEBUG] Extracted user info:", {
-    userEmail,
-    userId,
-    userType,
-    role
-  });
-
   // Get all dashboard data using our query functions with Promise.all() optimization
   const [dashboardData] = await Promise.all([
     getDashboardData(user),
   ]);
 
   const { userProfile, researchOpportunities, applications, stats } = dashboardData;
+
+  // Get the actual user type from the database (user_profiles table)
+  const userType = userProfile?.user_type || 'student';
+  const role = userType; // Use the user type from database
+  const accountStatus = userProfile?.account_status || 'pending';
+
+  // Check if professor account is pending approval
+  if (userType === 'professor' && accountStatus !== 'approved') {
+    return (
+      <div className="container mx-auto py-6 px-4 flex-1">
+        <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
+          <div className="max-w-md p-6 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-amber-100 rounded-full">
+              <Clock className="w-8 h-8 text-amber-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-amber-800 mb-2">
+              Conta Pendente de Aprovação
+            </h2>
+            <p className="text-amber-700 mb-4">
+              Sua conta de professor está aguardando aprovação da administração. 
+              Este processo pode levar de 1 a 3 dias úteis.
+            </p>
+            <div className="text-sm text-amber-600">
+              <p><strong>Status atual:</strong> {accountStatus === 'pending' ? 'Pendente' : 
+                accountStatus === 'rejected' ? 'Rejeitada' : 'Desconhecido'}</p>
+              <p><strong>Próximos passos:</strong> Aguarde o contato da equipe administrativa</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  console.log("🔍 [DEBUG] Extracted user info:", {
+    userEmail,
+    userId,
+    userType,
+    role,
+    userProfile: userProfile
+  });
 
   return (
     <div className="container mx-auto py-6 px-4 flex-1">
@@ -76,14 +105,15 @@ export default async function DashboardPage() {
           </h1>
         </div>
 
-        {/* User Profile Section with Edit Button */}
-        <div className="flex flex-col gap-4">
-          <div className="flex justify-between items-center">
-            <h2 className="font-bold text-2xl">Informações do Perfil</h2>
-            <EditProfileForm userProfile={userProfile} userEmail={userEmail} />
-          </div>
+        {/* User Profile Section with Edit Button - Hide for admins */}
+        {role !== "admin" && (
+          <div className="flex flex-col gap-4">
+            <div className="flex justify-between items-center">
+              <h2 className="font-bold text-2xl">Informações do Perfil</h2>
+              <EditProfileForm userProfile={userProfile} userEmail={userEmail} />
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* User Email Card */}
             <Card>
               <CardHeader className="flex flex-row items-center space-y-0 pb-2">
@@ -126,8 +156,7 @@ export default async function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-lg font-bold capitalize">
-                  {userProfile?.user_type === 'professor' ? 'Professor' : 
-                   userProfile?.user_type === 'student' ? 'Estudante' : 
+                  {userType === 'admin' ? 'Administrador' :
                    userType === 'professor' ? 'Professor' : 'Estudante'}
                 </div>
                 <p className="text-xs text-muted-foreground">Tipo de conta</p>
@@ -254,11 +283,33 @@ export default async function DashboardPage() {
                 </p>
               </CardContent>
             </Card>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Role-specific content */}
-        {role === "professor" ? (
+        {role === "admin" ? (
+          <div className="space-y-6">
+            <div className="text-center py-8">
+              <div className="flex items-center justify-center w-20 h-20 mx-auto mb-4 bg-primary/10 rounded-full">
+                <Shield className="w-10 h-10 text-primary" />
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                Painel Administrativo
+              </h2>
+              <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                Gerencie contas de professores, aprove solicitações e monitore o sistema.
+              </p>
+              <a 
+                href="/dashboard/admin" 
+                className="inline-flex items-center justify-center rounded-md text-lg font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-8 py-3"
+              >
+                <Shield className="w-5 h-5 mr-2" />
+                Acessar Painel Admin
+              </a>
+            </div>
+          </div>
+        ) : role === "professor" ? (
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold tracking-tight">
               Dashboard do Professor
@@ -318,7 +369,7 @@ export default async function DashboardPage() {
 
             {/* Research Opportunity Management */}
             <ResearchOpportunityManager 
-              researchOpportunities={researchOpportunities} 
+              userId={userId} 
             />
 
             {/* Post Management */}

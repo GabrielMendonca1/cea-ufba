@@ -145,4 +145,19 @@ export function ProfessorLoadingIndicator({
       </Card>
     </div>
   );
+}
+
+export function professorLoading() {
+  /* Return a generic full-page spinner instead of the professor-specific modal.
+     This avoids confusion when generic data-loading states call this helper. */
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm z-50">
+      <div className="text-center">
+        <div className="flex justify-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+        </div>
+        <p className="mt-4 text-sm text-muted-foreground">Carregando...</p>
+      </div>
+    </div>
+  );
 } 

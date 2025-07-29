@@ -42,20 +42,56 @@ export default function Signup() {
   // Show popup for success messages - using ref to prevent duplicates
   useEffect(() => {
     const successParam = searchParams.get('success');
-    if (successParam && !hasShownPopup.current) {
+    console.log('🔍 Popup useEffect triggered:', { 
+      successParam, 
+      hasShownPopup: hasShownPopup.current, 
+      showSuccessPopup,
+      searchParams: searchParams.toString()
+    });
+    
+    if (successParam && !hasShownPopup.current && !showSuccessPopup) {
+      console.log('📢 Showing popup with message:', successParam);
       setSuccessMessage(successParam);
       setShowSuccessPopup(true);
       hasShownPopup.current = true;
     }
-  }, [searchParams]);
+  }, [searchParams, showSuccessPopup]);
+
+  // Cleanup effect to ensure popup doesn't get stuck
+  useEffect(() => {
+    return () => {
+      setShowSuccessPopup(false);
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
 
   const handleClosePopup = () => {
+    console.log('🔧 Closing popup - before:', { 
+      showSuccessPopup, 
+      hasShownPopup: hasShownPopup.current,
+      currentUrl: window.location.href 
+    });
+    
     setShowSuccessPopup(false);
     hasShownPopup.current = false;
-    // Clear the success parameter from URL
-    const params = new URLSearchParams(searchParams);
-    params.delete('success');
-    router.replace(`/sign-up${params.toString() ? '?' + params.toString() : ''}`);
+    
+    // Clear the success parameter from URL more aggressively
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.delete('success');
+    currentUrl.searchParams.delete('message');
+    currentUrl.searchParams.delete('error');
+    
+    // Use window.history.replaceState for immediate URL update
+    const newUrl = currentUrl.pathname + 
+      (currentUrl.searchParams.toString() ? '?' + currentUrl.searchParams.toString() : '');
+    
+    window.history.replaceState({}, '', newUrl);
+    
+    console.log('🔧 Closing popup - after:', { 
+      newUrl,
+      showSuccessPopup: false,
+      hasShownPopup: hasShownPopup.current
+    });
   };
 
   const handleCloseProfessorLoading = () => {
@@ -206,9 +242,9 @@ export default function Signup() {
                           <p className="font-semibold mb-1">🎓 Validação de Professor UFBA</p>
                           <ul className="space-y-1">
                             <li>• Seus dados serão validados com o sistema UFBA</li>
-                            <li>• Recomendamos usar email @ufba.br ou @professor.ufba.br</li>
-                            <li>• O processo pode levar alguns momentos adicionais</li>
-                            <li>• Você receberá confirmação da validação por email</li>
+                            <li>• <strong>O processo de validação leva de 1 a 3 dias úteis</strong></li>
+                            <li>• Você receberá um email quando sua conta for aprovada</li>
+                            <li>• Recomendamos usar email @ufba.br para validação mais rápida</li>
                           </ul>
                         </div>
                       </div>

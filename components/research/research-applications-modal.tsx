@@ -21,6 +21,8 @@ import {
   FileText,
   GraduationCap,
 } from "lucide-react";
+import { useRealtimeTable } from "@/hooks/useRealtimeTable"; // Import the hook
+import { createClient } from "@/utils/supabase/client"; // Import client for fetching profiles
 
 interface ResearchApplicationsModalProps {
   isOpen: boolean;
@@ -55,10 +57,10 @@ interface ApplicationWithProfile {
   };
 }
 
-export function ResearchApplicationsModal({ 
-  isOpen, 
-  onClose, 
-  researchOpportunity 
+export function ResearchApplicationsModal({
+  isOpen,
+  onClose,
+  researchOpportunity
 }: ResearchApplicationsModalProps) {
   const [applications, setApplications] = useState<ApplicationWithProfile[]>([]);
   const [loading, setLoading] = useState(false);
@@ -68,32 +70,104 @@ export function ResearchApplicationsModal({
 
   const researchId = researchOpportunity.id;
   const researchTitle = researchOpportunity.title;
+  const supabase = createClient();
 
-  const fetchApplications = useCallback(async () => {
+  // Initial fetch of applications with user profiles
+  const fetchApplicationsWithProfiles = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/research/applications?researchId=${researchId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setApplications(data);
+      const { data, error } = await supabase
+        .from('applications')
+        .select(`
+          *,
+          user_profiles (
+            id,
+            email,
+            full_name,
+            user_type,
+            department,
+            research_area,
+            bio,
+            lattes_url,
+            student_id,
+            avatar_url,
+            is_profile_complete,
+            has_completed_onboarding,
+            created_at
+          )
+        `)
+        .eq('research_opportunity_id', researchId);
+
+      if (error) {
+        console.error("Erro ao buscar inscrições:", error);
+        setApplications([]);
+      } else {
+        // Ensure user_profiles is an object, not an array
+        const formattedData = data.map(app => ({
+          ...app,
+          user_profiles: Array.isArray(app.user_profiles) ? app.user_profiles[0] : app.user_profiles
+        })) as ApplicationWithProfile[];
+        setApplications(formattedData);
       }
     } catch (error) {
       console.error("Erro ao buscar inscrições:", error);
     } finally {
       setLoading(false);
     }
-  }, [researchId]);
+  }, [researchId, supabase]);
 
-  // Fetch applications when modal opens
+  // Use useRealtimeTable for real-time updates on the applications table
+  // We'll handle the user_profiles join manually for new inserts
+  useRealtimeTable<ApplicationWithProfile>(
+    'applications',
+    [], // Initial data is handled by fetchApplicationsWithProfiles
+    {
+      filter: `research_opportunity_id=eq.${researchId}`,
+      onInsert: async (newItem) => {
+        // Fetch user_profile for the new item
+        const { data: profileData, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', newItem.student_id)
+          .single();
+
+        if (!profileError && profileData) {
+          setApplications((prev) => {
+            const newAppWithProfile = { ...newItem, user_profiles: profileData };
+            // Check if already exists to prevent duplicates from initial fetch + realtime
+            if (!prev.some(app => app.id === newAppWithProfile.id)) {
+              return [...prev, newAppWithProfile];
+            }
+            return prev;
+          });
+        } else {
+          console.error("Error fetching profile for new application:", profileError);
+          setApplications((prev) => [...prev, newItem]); // Add without profile if error
+        }
+      },
+      onUpdate: (updatedItem) => {
+        setApplications((prev) =>
+          prev.map((app) =>
+            app.id === updatedItem.id ? { ...app, ...updatedItem } : app
+          )
+        );
+      },
+      onDelete: (deletedItem) => {
+        setApplications((prev) => prev.filter((app) => app.id !== deletedItem.id));
+      },
+    }
+  );
+
+  // Fetch applications when modal opens or researchId changes
   useEffect(() => {
     if (isOpen) {
-      fetchApplications();
+      fetchApplicationsWithProfiles();
     }
-  }, [isOpen, fetchApplications]);
+  }, [isOpen, fetchApplicationsWithProfiles]);
 
   const handleStatusUpdate = async (applicationId: string, newStatus: 'accepted' | 'rejected') => {
     try {
-      const response = await fetch('/api/applications/update-status', {
+      const response = await fetch('/api/applications/update-status', { // Assuming this API route exists
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -105,13 +179,10 @@ export function ResearchApplicationsModal({
       });
 
       if (response.ok) {
-        setApplications(prev => 
-          prev.map(app => 
-            app.id === applicationId 
-              ? { ...app, status: newStatus }
-              : app
-          )
-        );
+        // State will be updated by useRealtimeTable's onUpdate callback
+      } else {
+        const data = await response.json();
+        alert(`Error: ${data.error}`);
       }
     } catch (error) {
       console.error("Erro ao atualizar status:", error);
@@ -590,12 +661,7 @@ export function ResearchApplicationsModal({
             {activeTab === 'inscricoes' && (
               <div className="h-full">
                 {loading ? (
-                  <div className="flex items-center justify-center h-full">
-                    <div className="flex flex-col items-center gap-4">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                      <p className="text-sm text-muted-foreground">Carregando inscrições...</p>
-                    </div>
-                  </div>
+                  professorLoading()
                 ) : pendingApplications.length > 0 ? (
                   <ApplicationsTable applications={pendingApplications} showActions={true} />
                 ) : (
@@ -615,12 +681,7 @@ export function ResearchApplicationsModal({
             {activeTab === 'deferidos' && (
               <div className="h-full">
                 {loading ? (
-                  <div className="flex items-center justify-center h-full">
-                    <div className="flex flex-col items-center gap-4">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                      <p className="text-sm text-muted-foreground">Carregando candidatos aceitos...</p>
-                    </div>
-                  </div>
+                  professorLoading()
                 ) : acceptedApplications.length > 0 ? (
                   <ApplicationsTable applications={acceptedApplications} showActions={false} />
                 ) : (

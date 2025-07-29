@@ -7,6 +7,25 @@ import { Textarea } from "@/components/ui/textarea"
 import Editor from '@/components/posts/BlockNoteEditor'
 import { Loader2 } from "lucide-react"
 import { createClient } from '@/utils/supabase/client'
+import { useRealtimeTable } from '@/hooks/useRealtimeTable'
+import { v4 as uuidv4 } from 'uuid' // For generating temporary IDs
+
+interface ScientificOutreachPost {
+  id: string
+  title: string
+  description: string
+  created_at: string
+  updated_at: string
+  professor_id: string
+  user_profiles: {
+    full_name: string | null
+    email: string
+    department: string | null
+  } | null
+  posts: {
+    content: string
+  } | null
+}
 
 export default function CreatePostPage() {
   const [title, setTitle] = useState('')
@@ -16,6 +35,9 @@ export default function CreatePostPage() {
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
   const supabase = createClient()
+
+  // We don't need the data from useRealtimeTable here, just the setter to optimistically update
+  const [, setScientificOutreachPosts] = useRealtimeTable<ScientificOutreachPost>('scientific_outreach', [])
 
   useEffect(() => {
     const checkUser = async () => {
@@ -48,6 +70,38 @@ export default function CreatePostPage() {
 
     setIsSubmitting(true)
 
+    // Get current user ID first
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      alert('Usuário não autenticado')
+      setIsSubmitting(false)
+      return
+    }
+
+    const tempId = uuidv4() // Generate a temporary ID for optimistic UI
+    const now = new Date().toISOString()
+
+    // Optimistic update
+    const optimisticPost: ScientificOutreachPost = {
+      id: tempId,
+      title: title.trim(),
+      description: description.trim(),
+      created_at: now,
+      updated_at: now,
+      professor_id: user.id,
+      user_profiles: {
+        full_name: 'Você (otimista)',
+        email: '',
+        department: '',
+      },
+      posts: {
+        content: content.trim(),
+      },
+    }
+
+    // Add the optimistic post to the real-time state
+    setScientificOutreachPosts(prev => [optimisticPost, ...prev])
+
     try {
       const response = await fetch('/api/posts/create', {
         method: 'POST',
@@ -61,14 +115,18 @@ export default function CreatePostPage() {
 
       const data = await response.json()
 
-      if (data.success) {
-        router.push('/dashboard')
-        router.refresh()
+      if (response.ok && data.success) {
+        // Real-time hook will handle the actual update/replacement
+        router.push('/dashboard/posts')
       } else {
+        // Revert optimistic update on error
+        setScientificOutreachPosts(prev => prev.filter(post => post.id !== tempId))
         alert(data.error || 'Erro ao criar post')
       }
     } catch (error) {
       console.error('Error creating post:', error)
+      // Revert optimistic update on error
+      setScientificOutreachPosts(prev => prev.filter(post => post.id !== tempId))
       alert('Erro inesperado ao criar post')
     } finally {
       setIsSubmitting(false)
@@ -129,4 +187,4 @@ export default function CreatePostPage() {
       </main>
     </div>
   )
-} 
+}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { useRealtimeTable } from "./useRealtimeTable";
 
 export type ResearchOpportunity = {
   id: string;
@@ -27,7 +28,6 @@ export type ResearchOpportunity = {
 const ITEMS_PER_PAGE = 10;
 
 export function useInfiniteResearchOpportunities() {
-  const [items, setItems] = useState<ResearchOpportunity[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -36,6 +36,27 @@ export function useInfiniteResearchOpportunities() {
   
   const loadingRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
+
+  // Use useRealtimeTable for real-time updates and initial data
+  const [items, setItems] = useRealtimeTable<ResearchOpportunity>(
+    "research_opportunities",
+    [],
+    {
+      filter: "is_active=eq.true",
+      onInsert: (newItem) => {
+        // Ensure new items are added to the beginning for chronological order
+        setItems((prev) => [newItem, ...prev]);
+      },
+      onUpdate: (updatedItem) => {
+        setItems((prev) =>
+          prev.map((item) => (item.id === updatedItem.id ? updatedItem : item))
+        );
+      },
+      onDelete: (deletedItem) => {
+        setItems((prev) => prev.filter((item) => item.id !== deletedItem.id));
+      },
+    }
+  );
 
   const loadMoreItems = useCallback(async () => {
     if (loading || !hasMore) return;
@@ -63,6 +84,7 @@ export function useInfiniteResearchOpportunities() {
         setItems(prevItems => {
           const existingIds = new Set(prevItems.map(item => item.id));
           const newItems = data.filter(item => !existingIds.has(item.id));
+          // Append new items to the end of the list for infinite scroll
           return [...prevItems, ...newItems];
         });
         setCurrentPage(prev => prev + 1);
@@ -74,14 +96,14 @@ export function useInfiniteResearchOpportunities() {
       setLoading(false);
       setInitialLoading(false);
     }
-  }, [currentPage, loading, hasMore, supabase]);
+  }, [currentPage, loading, hasMore, supabase, setItems]);
 
-  // Load initial items
+  // Initial load of items (only if no items are present from realtime hook)
   useEffect(() => {
-    if (items.length === 0 && !loading && !error) {
+    if (items.length === 0 && !loading && !error && initialLoading) {
       loadMoreItems();
     }
-  }, [items.length, loading, error]);
+  }, [items.length, loading, error, initialLoading, loadMoreItems]);
 
   // Intersection Observer
   useEffect(() => {
@@ -112,7 +134,7 @@ export function useInfiniteResearchOpportunities() {
   const retry = () => {
     setError(null);
     setCurrentPage(0);
-    setItems([]);
+    setItems([]); // Reset items via useRealtimeTable's setter
     setHasMore(true);
     setInitialLoading(true);
   };

@@ -6,7 +6,7 @@ export interface UserProfile {
   id: string;
   email: string;
   full_name: string | null;
-  user_type: 'student' | 'professor';
+  user_type: 'student' | 'professor' | 'admin';
   department: string | null;
   research_area: string | null;
   bio: string | null;
@@ -15,6 +15,7 @@ export interface UserProfile {
   avatar_url: string | null;
   is_profile_complete: boolean;
   has_completed_onboarding: boolean | null;
+  account_status: 'pending' | 'approved' | 'rejected' | null;
   created_at: string;
   updated_at: string;
 }

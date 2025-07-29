@@ -224,6 +224,26 @@ export const signUpAction = async (formData: FormData) => {
   }
 
   // Profile creation is now handled automatically by the database trigger
+  // For professors, we need to set account_status to pending
+  if (userType === 'professor') {
+    try {
+      console.log('🔄 Setting professor account status to pending...');
+      const { error: updateError } = await supabase
+        .from('user_profiles')
+        .update({ account_status: 'pending' })
+        .eq('id', data.user.id);
+
+      if (updateError) {
+        console.error('❌ Error setting professor account status:', updateError);
+        // Don't fail the signup process, just log the error
+      } else {
+        console.log('✅ Professor account status set to pending');
+      }
+    } catch (error) {
+      console.error('❌ Unexpected error setting professor account status:', error);
+    }
+  }
+  
   console.log('✅ Signup completed - trigger should handle profile creation');
   console.log('=== SIGNUP ACTION END ===');
 
@@ -232,7 +252,7 @@ export const signUpAction = async (formData: FormData) => {
     "success",
     "/sign-up",
     userType === 'professor' 
-      ? "Conta de professor criada e validada com sucesso! Verifique sua caixa de entrada de email (incluindo spam/lixo eletrônico) e clique no link de confirmação para ativar sua conta. Você só poderá fazer login após confirmar seu email."
+      ? "Conta de professor criada com sucesso! Confirme seu email primeiro e aguarde a validação da sua conta pela equipe da UFBA. Este processo pode levar de 1 a 3 dias úteis. Você receberá um email quando sua conta for aprovada."
       : "Conta criada com sucesso! Verifique sua caixa de entrada de email (incluindo spam/lixo eletrônico) e clique no link de confirmação para ativar sua conta. Você só poderá fazer login após confirmar seu email.",
   );
 };
@@ -284,11 +304,11 @@ export const signInAction = async (formData: FormData) => {
       email: data.user.email
     });
 
-    // Check if user needs onboarding
+    // Check user profile and account status
     try {
       const { data: profile, error: profileError } = await supabase
         .from('user_profiles')
-        .select('has_completed_onboarding')
+        .select('has_completed_onboarding, user_type, account_status')
         .eq('id', data.user.id)
         .single();
 
@@ -297,9 +317,33 @@ export const signInAction = async (formData: FormData) => {
         // Continue to protected route if there's an error
       }
 
-      if (profile && !profile.has_completed_onboarding) {
-        console.log('🔄 Redirecting to onboarding');
-        return redirect("/onboarding");
+      if (profile) {
+        // Check account status for professors
+        if (profile.user_type === 'professor') {
+          if (profile.account_status === 'pending') {
+            console.log('❌ Professor account is pending approval');
+            return encodedRedirect(
+              "error",
+              "/sign-in",
+              "Sua conta de professor ainda está aguardando aprovação da equipe da UFBA. Você receberá um email quando sua conta for aprovada (1-3 dias úteis).",
+            );
+          }
+          
+          if (profile.account_status === 'rejected') {
+            console.log('❌ Professor account was rejected');
+            return encodedRedirect(
+              "error",
+              "/sign-in",
+              "Sua conta de professor foi rejeitada. Entre em contato com a equipe da UFBA para mais informações.",
+            );
+          }
+        }
+
+        // Check if user needs onboarding
+        if (!profile.has_completed_onboarding) {
+          console.log('🔄 Redirecting to onboarding');
+          return redirect("/onboarding");
+        }
       }
 
     } catch (profileError) {

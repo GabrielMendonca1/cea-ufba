@@ -27,16 +27,29 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useRealtimeTable } from '@/hooks/useRealtimeTable';
+import { ProfessorLoadingIndicator } from '@/components/ui/professor-loading';
 
 interface ResearchOpportunityManagerProps {
-  researchOpportunities: ResearchOpportunity[] | null;
+  userId: string;
 }
 
-export function ResearchOpportunityManager({ researchOpportunities }: ResearchOpportunityManagerProps) {
+export function ResearchOpportunityManager({ userId }: ResearchOpportunityManagerProps) {
   const [isApplicationsModalOpen, setIsApplicationsModalOpen] = useState(false);
   const [selectedResearch, setSelectedResearch] = useState<ResearchOpportunity | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const router = useRouter();
+
+  // Use useRealtimeTable to get real-time updates for research_opportunities
+  const [allResearchOpportunities, , isLoading] = useRealtimeTable<ResearchOpportunity>(
+    "research_opportunities",
+    [],
+    {
+      filter: `supervisor_id=eq.${userId}`,
+    }
+  );
+
+  const researchOpportunities = allResearchOpportunities.filter(opportunity => opportunity.supervisor_id === userId);
 
   const handleViewApplications = (opportunity: ResearchOpportunity) => {
     setSelectedResearch(opportunity);
@@ -44,7 +57,7 @@ export function ResearchOpportunityManager({ researchOpportunities }: ResearchOp
   };
 
   const handleDelete = async (opportunityId: string) => {
-    setIsLoading(true);
+    setIsDeleting(opportunityId);
     try {
       const response = await fetch("/api/research/delete", {
         method: "POST",
@@ -55,7 +68,7 @@ export function ResearchOpportunityManager({ researchOpportunities }: ResearchOp
       });
 
       if (response.ok) {
-        router.refresh(); // Refresh the page to show updated data
+        // The useRealtimeTable hook will automatically update the state
       } else {
         const errorData = await response.json();
         console.error("Failed to delete research opportunity:", errorData);
@@ -65,9 +78,14 @@ export function ResearchOpportunityManager({ researchOpportunities }: ResearchOp
       console.error("Error deleting research opportunity:", error);
       alert("An unexpected error occurred. Please try again.");
     } finally {
-      setIsLoading(false);
+      setIsDeleting(null);
     }
   };
+
+  // Show loading state
+  if (isLoading) {
+    return <ProfessorLoadingIndicator />;
+  }
 
   return (
     <div className="space-y-6">
@@ -84,7 +102,7 @@ export function ResearchOpportunityManager({ researchOpportunities }: ResearchOp
 
       {/* Research Opportunities List */}
       <div className="grid gap-4">
-        {researchOpportunities && researchOpportunities.length > 0 ? (
+        {researchOpportunities.length > 0 ? (
           researchOpportunities.map((opportunity) => (
             <Card key={opportunity.id}>
               <CardHeader>
@@ -99,7 +117,7 @@ export function ResearchOpportunityManager({ researchOpportunities }: ResearchOp
                       size="sm"
                       onClick={() => handleViewApplications(opportunity)}
                       className="gap-2"
-                      disabled={isLoading}
+                      disabled={isDeleting === opportunity.id}
                     >
                       <FileText className="w-4 h-4" />
                       Ver Inscrições
@@ -110,9 +128,9 @@ export function ResearchOpportunityManager({ researchOpportunities }: ResearchOp
                           variant="destructive"
                           size="sm"
                           className="gap-2"
-                          disabled={isLoading}
+                          disabled={isDeleting === opportunity.id}
                         >
-                          {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                          {isDeleting === opportunity.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                           Excluir
                         </Button>
                       </AlertDialogTrigger>

@@ -11,31 +11,29 @@ import {
 } from "@/hooks/use-infinite-scroll";
 import { ResearchOpportunityCard } from "./research-opportunity-card";
 import { ResearchDetailsSheet } from "@/components/research/research-details-sheet";
+import { ApplicationFormModal } from "./ApplicationFormModal";
+import { useRealtimeTable } from "@/hooks/useRealtimeTable";
+import useAuthUser from "@/hooks/use-auth-user";
+import { professorLoading } from "@/components/ui/professor-loading";
 import {
-  InitialLoadingSkeleton,
   LoadingIndicator,
   LoadMoreButton,
   EndOfListMessage,
   EmptyState,
   ErrorState,
-} from "./loading-states";
-import useAuthUser from "@/hooks/use-auth-user";
+} from "@/components/research/loading-states";
 
-/**
- * Research Opportunities List Component
- *
- * This is the main component that displays research opportunities in an infinite scroll format.
- * Now refactored for better separation of concerns and maintainability.
- */
 export default function ResearchOpportunitiesList() {
-  // State for detailed view functionality
   const [selectedResearch, setSelectedResearch] =
     useState<ResearchOpportunity | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
 
   const { user } = useAuthUser();
 
-  // Use custom hook for infinite scroll logic
+  // Use useRealtimeTable for applications to handle optimistic updates
+  const [, setApplications] = useRealtimeTable<any>("applications", []);
+
   const {
     items,
     loading,
@@ -47,33 +45,30 @@ export default function ResearchOpportunitiesList() {
     retry,
   } = useInfiniteResearchOpportunities();
 
-  /**
-   * Handle Research Click
-   * Opens the detailed view sheet for a selected research opportunity
-   */
   const handleResearchClick = (research: ResearchOpportunity) => {
     if (!user) return;
     setSelectedResearch(research);
     setIsSheetOpen(true);
   };
 
-  /**
-   * Handle Apply Click
-   * Handles application to a research opportunity
-   */
   const handleApplyClick = (
     e: React.MouseEvent,
     research: ResearchOpportunity,
   ) => {
     e.stopPropagation();
     if (!user) return;
-    // TODO: Implement application logic
-    console.log("Apply to research:", research.id);
+    setSelectedResearch(research);
+    setIsApplicationModalOpen(true);
+  };
+
+  const handleApplicationSubmit = (newApplication: any) => {
+    // This callback is used by ApplicationFormModal for optimistic updates
+    setApplications((prev: any) => [newApplication, ...prev]);
   };
 
   // Show initial loading state
   if (initialLoading) {
-    return <InitialLoadingSkeleton />;
+    return professorLoading();
   }
 
   // Show error state

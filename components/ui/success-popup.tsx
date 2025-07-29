@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, Mail, X } from "lucide-react";
+import { CheckCircle, Mail, X, Clock } from "lucide-react";
 
 interface SuccessPopupProps {
   isOpen: boolean;
@@ -27,13 +27,23 @@ export function SuccessPopup({
       setIsVisible(true);
       // Prevent body scroll when popup is open
       document.body.style.overflow = 'hidden';
+      
+      // Add escape key handler
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          handleClose();
+        }
+      };
+      
+      document.addEventListener('keydown', handleEscape);
+      
+      return () => {
+        document.removeEventListener('keydown', handleEscape);
+        document.body.style.overflow = 'unset';
+      };
     } else {
       document.body.style.overflow = 'unset';
     }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
   }, [isOpen]);
 
   if (!isOpen && !isVisible) return null;
@@ -50,7 +60,7 @@ export function SuccessPopup({
       case "success":
         return <CheckCircle className="w-8 h-8 text-green-600" />;
       case "warning":
-        return <Mail className="w-8 h-8 text-amber-600" />;
+        return <Clock className="w-8 h-8 text-amber-600" />;
       default:
         return <CheckCircle className="w-8 h-8 text-blue-600" />;
     }
@@ -122,12 +132,38 @@ export function SuccessPopup({
                 <Mail className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
                 <div className="text-xs text-blue-700 dark:text-blue-300">
                   <p className="font-medium mb-1">📋 Próximos passos:</p>
-                  <ol className="list-decimal list-inside space-y-1">
-                    <li>Abra sua caixa de entrada de email</li>
-                    <li>Procure por email do CEA UFBA (verifique spam também)</li>
-                    <li>Clique no link &quot;Confirmar Email&quot;</li>
-                    <li>Retorne aqui e faça login normalmente</li>
-                  </ol>
+                  {message.includes("validação") ? (
+                    <ol className="list-decimal list-inside space-y-1">
+                      <li>Confirme seu email clicando no link enviado</li>
+                      <li>Aguarde a validação da equipe UFBA (1-3 dias úteis)</li>
+                      <li>Você receberá um email quando for aprovado</li>
+                      <li>Após aprovação, faça login normalmente</li>
+                    </ol>
+                  ) : (
+                    <ol className="list-decimal list-inside space-y-1">
+                      <li>Abra sua caixa de entrada de email</li>
+                      <li>Procure por email do CEA UFBA (verifique spam também)</li>
+                      <li>Clique no link &quot;Confirmar Email&quot;</li>
+                      <li>Retorne aqui e faça login normalmente</li>
+                    </ol>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {type === "warning" && (
+            <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+              <div className="flex gap-2">
+                <Clock className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                <div className="text-xs text-amber-700 dark:text-amber-300">
+                  <p className="font-medium mb-1">⏰ Aguarde a validação:</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Sua conta será analisada pela equipe UFBA</li>
+                    <li>Este processo leva entre 1 a 3 dias úteis</li>
+                    <li>Você receberá um email com o resultado</li>
+                    <li>Não é necessário criar uma nova conta</li>
+                  </ul>
                 </div>
               </div>
             </div>

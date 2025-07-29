@@ -23,11 +23,15 @@ interface Post {
   } | null
 }
 
+import { useRealtimeTable } from '@/hooks/useRealtimeTable'
+
 export function InfinitePostsList() {
-  const [posts, setPosts] = useState<Post[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(0)
+
+  // Use useRealtimeTable for real-time updates and initial data
+  const [posts, setPosts] = useRealtimeTable<Post>('scientific_outreach', [])
 
   const loadMorePosts = useCallback(async () => {
     if (isLoading || !hasMore) return
@@ -42,7 +46,8 @@ export function InfinitePostsList() {
           const newPosts = data.posts.filter((newPost: Post) => 
             !prev.some(existingPost => existingPost.id === newPost.id)
           );
-          return [...prev, ...newPosts];
+          // Sort posts by created_at in descending order to ensure new posts appear at the top
+          return [...prev, ...newPosts].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         });
         setPage(prev => prev + 1)
         
@@ -58,11 +63,14 @@ export function InfinitePostsList() {
     } finally {
       setIsLoading(false)
     }
-  }, [page, isLoading, hasMore])
+  }, [page, isLoading, hasMore, setPosts]) // Add setPosts to dependencies
 
   useEffect(() => {
-    loadMorePosts()
-  }, [loadMorePosts])
+    // Initial load of posts
+    if (posts.length === 0 && !isLoading) { // Only load if no posts are present and not already loading
+      loadMorePosts()
+    }
+  }, [loadMorePosts, posts.length, isLoading])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -169,10 +177,10 @@ export function InfinitePostsList() {
       {/* Loading indicator */}
       {isLoading && (
         <div className="text-center py-8">
-          <div className="inline-flex items-center px-4 py-2 text-sm text-gray-600">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-            Carregando mais posts...
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
+          <p className="mt-2 text-sm text-gray-500">Carregando mais posts...</p>
         </div>
       )}
 

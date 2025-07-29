@@ -57,7 +57,7 @@ export default function CreateResearchOpportunityPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userId: user.id, data: formData }),
+        body: JSON.stringify({ data: formData }),
       });
 
       if (response.ok) {
